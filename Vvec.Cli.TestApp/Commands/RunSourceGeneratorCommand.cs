@@ -19,19 +19,19 @@ public class RunSourceGeneratorCommand : ISubCommand
     [EnumExtensions]
     public enum SgEnum
     {
-        This,
-        That,
-        TheOther
+        SgThis,
+        SgThat,
+        SgTheOther
     }
 
     public void Execute()
     {
-        var sourceGenned = new Sg();
-        sourceGenned.SG();
+        //var sourceGenned = new Sg();
+        //sourceGenned.SG();
 
-        var a = SgEnum.This;
-        var b = SgEnum.That;
-        var c = SgEnum.TheOther;
+        var a = SgEnum.SgThis;
+        var b = SgEnum.SgThat;
+        var c = SgEnum.SgTheOther;
 
         cons.WriteLine(a.ToStringFast());
         cons.WriteLine(b.ToStringFast());

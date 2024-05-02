@@ -14,11 +14,11 @@ namespace Vvec.Cli.Arguments.Introspection
     /// </summary>
     public class Introspection
     {
-        private EntryPoint entryPoint;
+        private Initialiser initialiser;
 
-        public Introspection(EntryPoint entryPoint)
+        public Introspection(Initialiser initialiser)
         {
-            this.entryPoint = entryPoint;
+            this.initialiser = initialiser;
         }
 
         public Command SetUpCommand<TSubCommand>(UI.IConsole verbose) where TSubCommand : ISubCommandBase
@@ -82,9 +82,9 @@ namespace Vvec.Cli.Arguments.Introspection
             var genericArgType = typeof(Argument<>);
 
             if (interfaces.Contains(typeof(ISubCommand)))
-                command.SetHandler(() => ((ISubCommand)entryPoint.Resolve<TSubCommand>()).Execute());
+                command.SetHandler(() => ((ISubCommand)initialiser.Resolve<TSubCommand>()).Execute());
             else if (interfaces.Contains(typeof(ISubCommandAsync)))
-                command.SetHandler(() => ((ISubCommandAsync)entryPoint.Resolve<TSubCommand>()).Execute().Wait());
+                command.SetHandler(() => ((ISubCommandAsync)initialiser.Resolve<TSubCommand>()).Execute().Wait());
             else if (cGen.GetGenericTypeDefinition() == typeof(ISubCommand<>))
             {
                 var args = cGen.GenericTypeArguments.First();
@@ -93,36 +93,65 @@ namespace Vvec.Cli.Arguments.Introspection
 
                 //cons.WriteLine(def);
                 //cons.WriteLine("Args:", args);
-                var props = args.GetProperties();
-                foreach (var prop in props)
-                {
-                    var arg = prop.GetCustomAttribute<ArgAttribute>();
-                    if (arg is not null)
-                    {
-                        //cons.WriteLine("  [arg]", prop.Name, ", name:", arg.Name, ", desc:", arg.Description);
-                        var argType = genericArgType.MakeGenericType(new[] { prop.PropertyType });
-                        var ctor = argType.GetConstructor(Type.EmptyTypes);
-                        var theArg = (Argument)ctor.Invoke(new object[0]);
-                        theArg.Name = arg.Name;
-                        theArg.Description = arg.Description;
-                        //cons.WriteLine($"-found {ctors.Length} constructors for Argument<>");
-                        //foreach (var ctor in ctors)
-                        //{
-                        //    var parms = ctor.GetParameters();
-                        //    cons.Write($"--{ctor.Name}[cgp:{ctor.ContainsGenericParameters}](");
-                        //    foreach (var parm in parms)
-                        //    {
-                        //        cons.Write(parm.ParameterType.Name, " ", parm.Name, ", ");
-                        //    }
-                        //    cons.WriteLine(")");
-                        //}
-                        command.AddArgument(theArg);
-                        fields.Add((theArg, prop));
+                //var props = args.GetProperties();
+                //foreach (var prop in props)
+                //{
+                //    var arg = prop.GetCustomAttribute<ArgAttribute>();
+                //    if (arg is not null)
+                //    {
+                //        //cons.WriteLine("  [arg]", prop.Name, ", name:", arg.Name, ", desc:", arg.Description);
+                //        var argType = genericArgType.MakeGenericType(new[] { prop.PropertyType });
+                //        var ctor = argType.GetConstructor(Type.EmptyTypes);
+                //        var theArg = (Argument)ctor.Invoke(new object[0]);
+                //        theArg.Name = arg.Name;
+                //        theArg.Description = arg.Description;
+                //        //cons.WriteLine($"-found {ctors.Length} constructors for Argument<>");
+                //        //foreach (var ctor in ctors)
+                //        //{
+                //        //    var parms = ctor.GetParameters();
+                //        //    cons.Write($"--{ctor.Name}[cgp:{ctor.ContainsGenericParameters}](");
+                //        //    foreach (var parm in parms)
+                //        //    {
+                //        //        cons.Write(parm.ParameterType.Name, " ", parm.Name, ", ");
+                //        //    }
+                //        //    cons.WriteLine(")");
+                //        //}
+                //        command.AddArgument(theArg);
+                //        fields.Add((theArg, prop));
 
-                        continue;
-                    }
-                    //cons.WriteLine("  [no attr]", prop.Name);
-                }
+                //        continue;
+                //    }
+
+                //    //var opt = prop.GetCustomAttribute<OptAttribute>();
+                //    //if (opt is not null)
+                //    //{
+                //    //    //cons.WriteLine("  [opt]", prop.Name, ", name:", opt.Name, ", desc:", opt.Description);
+                //    //    var argType = genericArgType.MakeGenericType(new[] { prop.PropertyType });
+                //    //    var ctor = argType.GetConstructor(Type.EmptyTypes);
+                //    //    var theArg = (Argument)ctor.Invoke(new object[0]);
+                //    //    theArg.Name = opt.Name;
+                //    //    theArg.Description = opt.Description;
+                //    //    //cons.WriteLine($"-found {ctors.Length} constructors for Argument<>");
+                //    //    //foreach (var ctor in ctors)
+                //    //    //{
+                //    //    //    var parms = ctor.GetParameters();
+                //    //    //    cons.Write($"--{ctor.Name}[cgp:{ctor.ContainsGenericParameters}](");
+                //    //    //    foreach (var parm in parms)
+                //    //    //    {
+                //    //    //        cons.Write(parm.ParameterType.Name, " ", parm.Name, ", ");
+                //    //    //    }
+                //    //    //    cons.WriteLine(")");
+                //    //    //}
+                //    //    command.AddArgument(theArg);
+                //    //    fields.Add((theArg, prop));
+
+                //    //    continue;
+                //    //}
+
+
+
+                //    //cons.WriteLine("  [no attr]", prop.Name);
+                //}
 
                 var handlerX = typeof(Handler).GetMethods();
                 //cons.WriteLine(handlerX);

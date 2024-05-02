@@ -9,7 +9,7 @@ using Vvec.Cli.Arguments.ParserConsole;
 using Vvec.Cli.UI;
 
 namespace Vvec.Cli.Arguments;
-public partial class EntryPoint
+public partial class Initialiser
 {
     private readonly Dictionary<Type, object?> dependencies = new Dictionary<Type, object?>();
     private readonly Dictionary<Type, Func<object>> dependencyFuncs = new Dictionary<Type, Func<object>>();
@@ -29,7 +29,7 @@ public partial class EntryPoint
 
 
     [Obsolete("I need to be phased out, & rootCommand made private readonly")]
-    public EntryPoint()
+    public Initialiser()
     {
         // REMEMBER I NEED KILLING, NOT EXTENDING...
         //SG();
@@ -38,7 +38,7 @@ public partial class EntryPoint
         argumentConsole = parserConsole;
     }
 
-    public EntryPoint Group(string name)
+    public Initialiser Group(string name)
     {
         parserConsole.AddGroup(name);
         return this;
@@ -54,7 +54,7 @@ public partial class EntryPoint
         return true;
     }
 
-    public EntryPoint(string[] args, string description)
+    public Initialiser(string[] args, string description)
     {
 
         this.args = args;
@@ -73,27 +73,27 @@ public partial class EntryPoint
     }
 
 
-    public EntryPoint AddDependency<T>()
+    public Initialiser AddDependency<T>()
     {
         dependencies.Add(typeof(T), null);
         dependencyFuncs.Add(typeof(T), () => Construct(typeof(T)));
         return this;
     }
 
-    public EntryPoint AddDependency<T>(T instance)
+    public Initialiser AddDependency<T>(T instance)
     {
         dependencies.Add(typeof(T), instance);
         return this;
     }
 
-    public EntryPoint AddDependency<T>(Func<T> func)
+    public Initialiser AddDependency<T>(Func<T> func)
     {
         dependencies.Add(typeof(T), null);
         dependencyFuncs.Add(typeof(T), () => func());
         return this;
     }
 
-    public EntryPoint Register<TSubCommand>() where TSubCommand : ISubCommandBase
+    public Initialiser Register<TSubCommand>() where TSubCommand : ISubCommandBase
     {
         var cons = VConsole.Instance;
         var verbose = cons.Verbose;
@@ -104,13 +104,19 @@ public partial class EntryPoint
 
         parserConsole.AddCommand(command.Name);
 
+        //command.SetHandler(Action<string, bool, int> (arg1, arg2, arg3) => Console.WriteLine("meh"));
+
         rootCommand.Add(command);
+
+        RegisteredSubCommands.Add(typeof(TSubCommand), command);
         return this;
     }
 
+    private readonly Dictionary<Type, Command> RegisteredSubCommands = new Dictionary<Type, Command>();
 
 
-    //public EntryPoint Register<TSubCommand>() where TSubCommand : ISubCommandAsync
+
+    //public Initialiser Register<TSubCommand>() where TSubCommand : ISubCommandAsync
     //{
     //    VConsole.Instance.WriteLine("Registering command: ", typeof(TSubCommand).Name.InYellow());
     //    AddDependency<TSubCommand>();
@@ -174,9 +180,12 @@ public partial class EntryPoint
     {
         return (false, Array.Empty<Type>());
     }
+    //public partial void RegisterCommands(Dictionary<Type, Command> registeredCommands);
 
-    public int Execute()
+    public int Execute(Action<Dictionary<Type, Command>, Func<Type, object>> registerCommandExecution)
     {
+        registerCommandExecution(RegisteredSubCommands, Resolve);
+
         //if (CheckAndRemoveGlobalOption("-dc"))
         //    return rootCommand.Invoke(args);
         //else
@@ -187,7 +196,7 @@ public partial class EntryPoint
 
         //    return rootCommand.Invoke(args.Skip(1).ToArray());
         //else
-        //    // This rootCommand needs to disappear, as does the console. Need a simple start method on EntryPoint. And the args should go into the EntryPoint ctor, so a verbose flag (and any other global stuff) can be set up right at the start.
+        //    // This rootCommand needs to disappear, as does the console. Need a simple start method on Initialiser. And the args should go into the Initialiser ctor, so a verbose flag (and any other global stuff) can be set up right at the start.
         //    return rootCommand.Invoke(args, new Vvec.Cli.Arguments.ArgumentParserConsole());
     }
 }

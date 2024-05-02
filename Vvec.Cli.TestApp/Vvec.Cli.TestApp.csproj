@@ -12,4 +12,8 @@
     <ProjectReference Include="..\Vvec.Cli\Vvec.Cli.csproj" />
   </ItemGroup>
 
+	<PropertyGroup>
+		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+	</PropertyGroup>
+
 </Project>

@@ -2,7 +2,7 @@
 
 namespace Vvec.Cli.SourceGenerator
 {
-    public static class SourceGenerationHelper
+    public static class EnumSourceGenerationHelper
     {
         public const string Attribute = @"
 namespace Vvec.Sg
@@ -12,6 +12,8 @@ namespace Vvec.Sg
     {
     }
 }";
+
+
 
 
         public static string GenerateExtensionClass(List<EnumToGenerate> enumsToGenerate)

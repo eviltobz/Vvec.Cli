@@ -15,7 +15,7 @@ public class StandardWriter : IStandardStreamWriter
         if (value is null)
             return;
 
-    callCount++;
+        callCount++;
         var segments = value.Split(".");
         if (callCount == 1 & segments.Length == 3) // Not a perfect check, but _should_ be enough
         {
@@ -50,27 +50,50 @@ public class StandardWriter : IStandardStreamWriter
         commandWriter = new CommandWriter(groups);
     }
 
+    private bool isOpts = false;
+    private bool isUsage = false;
+    private bool isSubCommand = false;
     private void WriteSegment(string value)
     {
         if (isNewline)
         {
-            //if (DoExtraHaxx(value))
-                if (value.StartsWith(" "))
-                    console.Write(value.InDarkYellow());
-                else
+            if (value.StartsWith(" "))
+            {
+                if (isOpts && isSubCommand && value == "  -?, -h, --help")
                 {
-                    console.Write(value.InGreen());
-                    if (value.StartsWith("Options:"))
-                    {
-                        console
-                            .WriteLine()
-                            .WriteLine("  --dc       ".InDarkYellow(), "     ", "Use default console for this help page".InRed())
-                            .Write("  --verbose  ".InDarkYellow(), "     ", "Include extra debug output".InCyan());
-                    }
+                    console.WriteLine("  --------------");
                 }
+
+                console.Write(value.InDarkYellow());
+            }
+            else
+            {
+                if (isOpts && value == "\r")
+                {
+                    console
+                        .WriteLine("  --dc       ".InDarkYellow(), "     ", "Use default console for this help page".InRed())
+                        .Write("  --verbose  ".InDarkYellow(), "     ", "Include extra debug output".InCyan());
+                    isOpts = false;
+                }
+                console.Write(value.InGreen());
+                if (value == "Options:")
+                    isOpts = true;
+                if (value == "Usage:")
+                    isUsage = true;
+            }
         }
         else
+        {
+            if (isUsage && !string.IsNullOrWhiteSpace(value))
+            {
+                var bits = value.Trim().Split(" ");
+                isSubCommand = !(bits.Length > 1 && bits[1] == "[command]");
+                isUsage = false;
+            }
+
             console.Write(value);
+        }
+
 
         isNewline = value.EndsWith("\n");
     }

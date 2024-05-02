@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Vvec.Cli.TestApp": {
+      "commandName": "Project",
+      "commandLineArgs": "args2"
+    }
+  }
+}

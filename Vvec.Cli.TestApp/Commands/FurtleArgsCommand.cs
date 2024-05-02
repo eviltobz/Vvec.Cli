@@ -1,7 +1,6 @@
 ﻿//using System.CommandLine;
 using Vvec.Cli.Arguments;
 using Vvec.Cli.UI;
-
 public class FurtleArgsCommand : ISubCommand<Thingy>
 {
     private readonly IConsole cons;

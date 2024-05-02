@@ -3,6 +3,8 @@ using System.CommandLine;
 using System.CommandLine.Binding;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Text.RegularExpressions;
+using Vvec.Cli.Arguments.Introspection;
 using Vvec.Cli.UI;
 
 namespace Vvec.Cli.Arguments;
@@ -11,6 +13,10 @@ public partial class EntryPoint
     private readonly Dictionary<Type, object?> dependencies = new Dictionary<Type, object?>();
     private readonly Dictionary<Type, Func<object>> dependencyFuncs = new Dictionary<Type, Func<object>>();
     public RootCommand rootCommand = null;
+
+    private readonly Introspection.Introspection meh;
+    private readonly System.CommandLine.IConsole? argumentConsole = null;
+    private readonly ArgumentParserConsole parserConsole = new ArgumentParserConsole();
 
 
     private string[] args; // This not being readonly is a bit nasty, may wanna rethink things at some point...
@@ -26,6 +32,15 @@ public partial class EntryPoint
     {
         // REMEMBER I NEED KILLING, NOT EXTENDING...
         //SG();
+
+        meh = new Introspection.Introspection(this);
+        argumentConsole = parserConsole;
+    }
+
+    public EntryPoint Group(string name)
+    {
+        parserConsole.AddGroup(name);
+        return this;
     }
 
     private bool CheckAndRemoveGlobalOption(string optionName)
@@ -40,30 +55,22 @@ public partial class EntryPoint
 
     public EntryPoint(string[] args, string description)
     {
-        //if (args.Any(a => a.ToUpper() == "-VERBOSE"))
-        //{
-        //    VConsole.SetVerbose();
-        //    this.args = args.Where(a => a.ToUpper() != "-VERBOSE").ToArray();
-        //}
-        //else
-        //    this.args = args;
 
         this.args = args;
-        if (CheckAndRemoveGlobalOption("-verbose"))
+        if (CheckAndRemoveGlobalOption("--verbose"))
             VConsole.SetVerbose();
+
+        argumentConsole = CheckAndRemoveGlobalOption("--dc")
+            ? null
+            : parserConsole; // this is a bit sucky
 
         rootCommand = new RootCommand(description);
 
-        System.Console.WriteLine("In ctor");
-        //SG();
-        AddDependency<Vvec.Cli.UI.IConsole>(VConsole.Instance);
+        AddDependency(VConsole.Instance);
 
+        meh = new Introspection.Introspection(this);
     }
 
-    //public partial void SG();
-    //{
-    //    System.Console.WriteLine("In static code");
-    //}
 
     public EntryPoint AddDependency<T>()
     {
@@ -91,122 +98,15 @@ public partial class EntryPoint
         var verbose = cons.Verbose;
         //cons.WriteLine("Registering command: ", typeof(TSubCommand).Name.InYellow());
         AddDependency<TSubCommand>();
-        var nameProp = TSubCommand.Name; // typeof(TSubCommand).GetProperty(nameof(ISubCommand.Name), BindingFlags.Public | BindingFlags.Static);
-        var descriptionProp = TSubCommand.Description; // typeof(TSubCommand).GetProperty(nameof(ISubCommand.Description), BindingFlags.Public | BindingFlags.Static);
-        //var command = new Command(nameProp!.GetValue(null)!.ToString()!, descriptionProp!.GetValue(null)!.ToString());
-        var command = new Command(nameProp, descriptionProp);
-        var bob = typeof(TSubCommand);
-        //var commandX = Resolve<TSubCommand>();
-        var interfaces = typeof(TSubCommand).GetInterfaces();
 
-        //var cType = commandX.GetType();
-        //var isGen = commandX.GetType().IsGenericType;
+        Command command = meh.SetUpCommand<TSubCommand>(verbose);
 
-        //foreach (var @interface in interfaces.Where(i => i.IsConstructedGenericType))
-        //{
-        //    cons.WriteLine(@interface.FullName);
-        //    cons.WriteLine(@interface.Name);
-
-        //    var open = typeof(ISubCommandWithArguments<>);
-
-        //    var e = @interface.IsSubclassOfRawGeneric(open);
-
-        //    var a = open.IsAssignableFrom(@interface);
-        //    var b = @interface.IsAssignableFrom(open);
-
-        //    var c = open.IsAssignableTo(@interface);
-        //    var d = @interface.IsAssignableTo(open);
-
-        //    cons.WriteLine(@interface.Name.InYellow(), " Assignables: ", a, b, c, d, e);
-        //}
-        //foreach (var @interface in interfaces)
-        //{
-        //    var open = typeof(ISubCommandWithArguments);
-        //    //var a = open.IsAssignableFrom(@interface);
-        //    var b = @interface.IsAssignableFrom(open);
-
-        //    //cons.WriteLine(@interface.Name.InYellow(), " Assignables: ", a, b); //, c, d);
-
-        //    if (b)
-        //    {
-        //        var prop = bob.GetProperty(nameof(ISubCommandWithArguments.Modifiers));
-        //        var modifiers = (IEnumerable<Symbol>)(prop.GetGetMethod().Invoke(null, null));
-        //    }
-
-        //}
-
-        var cGen = interfaces.FirstOrDefault(i => i.IsConstructedGenericType);
-        //if (cGen is not null)
-        //{
-        //    var open = typeof(ISubCommandWithArguments<>);
-
-        //    var a = open.IsAssignableFrom(cGen);
-        //    var b = cGen.IsAssignableFrom(open);
-
-        //    cons.WriteLine(cGen.Name.InYellow(), " Assignables: ", a, b); //, c, d);
-        //}
-
-
-        var genericArgType = typeof(Argument<>);
-
-        if (interfaces.Contains(typeof(ISubCommand)))
-            command.SetHandler(() => ((ISubCommand)Resolve<TSubCommand>()).Execute());
-        else if (interfaces.Contains(typeof(ISubCommandAsync)))
-            command.SetHandler(() => ((ISubCommandAsync)Resolve<TSubCommand>()).Execute().Wait());
-        else if (cGen.GetGenericTypeDefinition() == typeof(ISubCommand<>))
-        {
-            var args = cGen.GenericTypeArguments.First();
-            var fields = new List<(Symbol symbol, PropertyInfo prop)>();
-
-
-            //cons.WriteLine(def);
-            //cons.WriteLine("Args:", args);
-            var props = args.GetProperties();
-            foreach (var prop in props)
-            {
-                var arg = prop.GetCustomAttribute<ArgAttribute>();
-                if (arg is not null)
-                {
-                    //cons.WriteLine("  [arg]", prop.Name, ", name:", arg.Name, ", desc:", arg.Description);
-                    var argType = genericArgType.MakeGenericType(new[] { prop.PropertyType });
-                    var ctor = argType.GetConstructor(Type.EmptyTypes);
-                    var theArg = (Argument)ctor.Invoke(new object[0]);
-                    theArg.Name = arg.Name;
-                    theArg.Description = arg.Description;
-                    //cons.WriteLine($"-found {ctors.Length} constructors for Argument<>");
-                    //foreach (var ctor in ctors)
-                    //{
-                    //    var parms = ctor.GetParameters();
-                    //    cons.Write($"--{ctor.Name}[cgp:{ctor.ContainsGenericParameters}](");
-                    //    foreach (var parm in parms)
-                    //    {
-                    //        cons.Write(parm.ParameterType.Name, " ", parm.Name, ", ");
-                    //    }
-                    //    cons.WriteLine(")");
-                    //}
-                    command.AddArgument(theArg);
-                    fields.Add((theArg, prop));
-
-                    continue;
-                }
-                //cons.WriteLine("  [no attr]", prop.Name);
-            }
-
-            var handlerX = typeof(Handler).GetMethods();
-            //cons.WriteLine(handlerX);
-            //cons.WriteLine("Registering command: ", typeof(TSubCommand).Name.InYellow());
-            verbose.WriteLine("Found ", fields.Count.InYellow(), " symbols for ", typeof(TSubCommand).Name.InYellow(), " to load into a ", args.Name.InYellow(), ":");
-            foreach (var field in fields)
-            {
-                verbose.WriteLine($"  {field.symbol.Name}, {field.prop.Name}, {field.prop.PropertyType}");
-            }
-            verbose.WriteLine("Now I just need to codegen a function to take all of them as args, and load em into the type, then hook that up to the subcommand. Simples".InDarkRed());
-        }
-
+        parserConsole.AddCommand(command.Name);
 
         rootCommand.Add(command);
         return this;
     }
+
 
 
     //public EntryPoint Register<TSubCommand>() where TSubCommand : ISubCommandAsync
@@ -276,10 +176,11 @@ public partial class EntryPoint
 
     public int Execute()
     {
-        if (CheckAndRemoveGlobalOption("-dc"))
-            return rootCommand.Invoke(args);
-        else
-            return rootCommand.Invoke(args, new Vvec.Cli.Arguments.ArgumentParserConsole());
+        //if (CheckAndRemoveGlobalOption("-dc"))
+        //    return rootCommand.Invoke(args);
+        //else
+        //    return rootCommand.Invoke(args, new Vvec.Cli.Arguments.ArgumentParserConsole());
+        return rootCommand.Invoke(args, argumentConsole);
 
         //if (args.Length > 0 && args[0] == "-dc")
 

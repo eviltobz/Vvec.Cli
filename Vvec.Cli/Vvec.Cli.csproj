@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
@@ -10,6 +10,10 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.4.0" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
     <PackageReference Include="System.CommandLine.Rendering" Version="0.4.0-alpha.22272.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Vvec.Cli.SourceGenerator\Vvec.Cli.SourceGenerator.csproj" />
   </ItemGroup>
 
 </Project>

@@ -73,8 +73,11 @@ namespace Vvec.Cli.Arguments
 
     public class StandardWriter : IStandardStreamWriter
     {
-        private IConsole console = VConsole.Instance;
+        private readonly CommandWriter commandWriter;
+        private readonly IConsole console = VConsole.Instance;
+
         private int callCount = 0;
+
         public void Write(string? value)
         {
             if (callCount == 0)
@@ -95,7 +98,10 @@ namespace Vvec.Cli.Arguments
 
             else
             {
-                WriteSegment(value);
+                if (processingCommands)
+                    commandWriter.Write(value);
+                else
+                    WriteSegment(value);
             }
         }
 
@@ -115,6 +121,8 @@ namespace Vvec.Cli.Arguments
         public StandardWriter(List<KeyValuePair<string, List<string>>> groups)
         {
             this.groups = groups;
+
+            commandWriter = new CommandWriter(groups);
         }
 
         private void WriteSegment(string value)
@@ -194,7 +202,7 @@ namespace Vvec.Cli.Arguments
                 else
                     PrintArg(bit);
 
-                if (count++ < (bits.Length -1))
+                if (count++ < (bits.Length - 1))
                     console.Write(" ");
             }
         }
@@ -209,6 +217,62 @@ namespace Vvec.Cli.Arguments
 
             console.Write(options[options.Length - 1].InYellow());
             console.Write(">".InDarkYellow());
+        }
+    }
+
+    public class CommandWriter
+    {
+        private readonly List<KeyValuePair<string, List<string>>> groups;
+        private readonly IConsole console = VConsole.Instance;
+        private const string Indent = "  ";
+
+        private bool isNewline = true;
+
+        public CommandWriter(List<KeyValuePair<string, List<string>>> groups)
+        {
+            this.groups = groups;
+        }
+
+        public void Write(string? value)
+        {
+            if (value == Environment.NewLine)
+            {
+                console.WriteLine();
+            }
+            else if (isNewline)
+            {
+                WriteCommand(value!);
+            }
+            else
+            {
+                WriteDescription(value!);
+            }
+            isNewline = value.EndsWith("\n");
+        }
+
+        private void WriteCommand(string value)
+        {
+            var (command, args) = SplitCommand(value);
+
+            console.Write("-".InBlue());
+            console.Write(Indent, command.InDarkYellow());
+
+            for (int i = 0; i < args.Length; i++)
+            {
+                console.Write(" ", args[i].InCyan());
+            }
+        }
+
+        private (string command, string[] args) SplitCommand(string value)
+        {
+            var split = value.Trim().Split(" ");
+            return (split.First(), split.Skip(1).ToArray());
+        }
+
+        private void WriteDescription(string value)
+        {
+            console.Write("!".InRed());
+            console.Write(value);
         }
     }
 }

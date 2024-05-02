@@ -5,12 +5,12 @@ namespace Vvec.Cli.UI;
 
 public partial class VConsole
 {
-    private class PromptImplementation : IConsole.IPrompt
+    internal class PromptImplementation : IConsole.IPrompt
     {
-        private readonly VConsole console;
+        private readonly IInternalConsole console;
         private readonly List<List<object>> lines = new();
 
-        public PromptImplementation(VConsole console, params object[] items)
+        public PromptImplementation(IInternalConsole console, params object[] items)
         {
             this.console = console;
             lines.Add(items.ToList());
@@ -79,7 +79,7 @@ public partial class VConsole
         }
 
 
-        private VConsole WritePrompt()
+        private IInternalConsole WritePrompt()
         {
             for (int i = 0; i < lines.Count - 1; i++)
                 console.WriteLine(lines[i].ToArray());

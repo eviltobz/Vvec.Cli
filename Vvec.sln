@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33103.184
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vvec.TestCli", "Vvec.TestCli\Vvec.TestCli.csproj", "{48D3AB4D-7A9F-4775-861B-F43280001B3F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vvec.Cli.TestApp", "Vvec.Cli.TestApp\Vvec.Cli.TestApp.csproj", "{48D3AB4D-7A9F-4775-861B-F43280001B3F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vvec.Cli", "Vvec.Cli\Vvec.Cli.csproj", "{B5830C1E-EB58-48AB-BE12-6BFF6615C9E2}"
 EndProject

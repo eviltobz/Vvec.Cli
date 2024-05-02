@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vvec.Cli", "Vvec.Cli\Vvec.C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vvec.Cli.SourceGenerator", "Vvec.Cli.SourceGenerator\Vvec.Cli.SourceGenerator.csproj", "{78EAC449-25D2-4B94-8AED-9B66DF7E8795}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vvec.Cli.Tests", "Vvec.Cli.Tests\Vvec.Cli.Tests.csproj", "{5B0F30D4-1A86-4B07-9A4A-F0DCD0B484E9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{78EAC449-25D2-4B94-8AED-9B66DF7E8795}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{78EAC449-25D2-4B94-8AED-9B66DF7E8795}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{78EAC449-25D2-4B94-8AED-9B66DF7E8795}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B0F30D4-1A86-4B07-9A4A-F0DCD0B484E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B0F30D4-1A86-4B07-9A4A-F0DCD0B484E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B0F30D4-1A86-4B07-9A4A-F0DCD0B484E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B0F30D4-1A86-4B07-9A4A-F0DCD0B484E9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

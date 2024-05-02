@@ -16,4 +16,10 @@
     <ProjectReference Include="..\Vvec.Cli.SourceGenerator\Vvec.Cli.SourceGenerator.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="Arguments\ParserConsole\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Arguments\ParserConsole\" />
+  </ItemGroup>
 </Project>

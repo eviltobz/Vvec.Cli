@@ -2,7 +2,7 @@
 {
     public record Coloured
     {
-        public string? Value { get; init; }
+        public string Value { get; init; }
         public Colour? Foreground { get; init; }
         public Colour? Background { get; init; }
 
@@ -16,7 +16,7 @@
             }
             else
             {
-                Value = value?.ToString();
+                Value = value?.ToString() ?? "";
                 Foreground = foreground;
                 Background = background;
             }

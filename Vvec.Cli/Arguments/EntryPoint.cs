@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Text.RegularExpressions;
 using Vvec.Cli.Arguments.Introspection;
+using Vvec.Cli.Arguments.ParserConsole;
 using Vvec.Cli.UI;
 
 namespace Vvec.Cli.Arguments;

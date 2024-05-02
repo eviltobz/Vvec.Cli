@@ -68,7 +68,11 @@ namespace Vvec.Cli
                 var command = registeredCommands[typeof(" + registration.Name + @")];
                 command.SetHandler(() =>
                 {
-                    // Need to do IoC resolve in SourceGen rather than reflection...
+                    // It'd be _nice_ to do IoC resolve in SourceGen rather than reflection...
+                    // It is quite an undertaking though. We have the source for the cli app, but any
+                    // dependency libraries that we want to register won't be in the compilation, so
+                    // it'd need to mix in compile-time reflection and source-genny code to build it all
+                    // Let's hold off on that for now...
                     var implementation = (" + registration.Name + ")resolver(typeof(" + registration.Name + @"));
                     implementation.Execute();
                 });

@@ -57,6 +57,12 @@ public class EntryPoint
         return this;
     }
 
+    public EntryPoint WithConfig<TConfig>(TConfig defaultConfig = null) where TConfig : class, new()
+    {
+        initialiser.WithConfig<TConfig>(defaultConfig);
+        return this;
+    }
+
     public EntryPoint Register<TSubCommand>() where TSubCommand : ISubCommandBase
     {
         initialiser.Register<TSubCommand>();

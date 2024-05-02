@@ -22,10 +22,6 @@
     <None Remove="Arguments\ParserConsole\" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Arguments\" />
-    <Folder Include="Arguments\ParserConsole\" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Vvec.Cli\Vvec.Cli.csproj" />
   </ItemGroup>
 </Project>

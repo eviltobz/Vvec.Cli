@@ -1,5 +1,6 @@
 ﻿using System;
 using Vvec.Cli.Arguments.ParserConsole;
+using Vvec.Cli.Config;
 using Vvec.Cli.UI;
 
 namespace Vvec.Cli.Tests.Arguments.ParserConsole;
@@ -46,8 +47,8 @@ public class CommandOutputTests
             "  ".InGrey(),
             "name".InDarkYellow(),
             "    ".InGrey(), // expect extra indent here
-            "description\n".InGrey(), 
-	     };
+            "description\n".InGrey(),
+         };
 
         CollectionAssert.AreEqual(expected, actual);
     }
@@ -63,8 +64,8 @@ public class CommandOutputTests
             "  ".InGrey(),
             "name".InDarkYellow(),
             Padding(4),
-            "\n".InGrey(), 
-	     };
+            "\n".InGrey(),
+         };
 
         AssertOutput(expected, actual);
     }
@@ -288,7 +289,7 @@ public class CommandOutputTests
     }
 
     private void AssertOutput(Coloured[] expected, Coloured[] actual)
-    { 
+    {
         DebugPrint(expected, "expected");
         DebugPrint(actual, "Actual");
 

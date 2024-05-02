@@ -6,9 +6,12 @@ using System.Reflection.Emit;
 using System.Text.RegularExpressions;
 using Vvec.Cli.Arguments.Introspection;
 using Vvec.Cli.Arguments.ParserConsole;
+using Vvec.Cli.Config;
 using Vvec.Cli.UI;
+using IConsole = Vvec.Cli.UI.IConsole;
 
 namespace Vvec.Cli.Arguments;
+
 public partial class Initialiser
 {
     private readonly Dictionary<Type, object?> dependencies = new Dictionary<Type, object?>();
@@ -21,12 +24,14 @@ public partial class Initialiser
 
 
     private string[] args; // This not being readonly is a bit nasty, may wanna rethink things at some point...
-    // We only want to remove global args, not any that are registered for a command. So let's also pass in any global args in the ctor,
-    // check em, remove em from the arg list, then set this member as readonly. Create a dictionaryesque thing with globals that are
-    // present, and have a case insensitive search for them? Or, can I have a strongly typed object, and use the names from that as
-    // the flags to check for? That'd be better than a stringly typed dictionary!
+                           // We only want to remove global args, not any that are registered for a command. So let's also pass in any global args in the ctor,
+                           // check em, remove em from the arg list, then set this member as readonly. Create a dictionaryesque thing with globals that are
+                           // present, and have a case insensitive search for them? Or, can I have a strongly typed object, and use the names from that as
+                           // the flags to check for? That'd be better than a stringly typed dictionary!
 
 
+    private static readonly IConsole cons = VConsole.Instance;
+    private static readonly IConsole verbose = cons.Verbose;
 
     [Obsolete("I need to be phased out, & rootCommand made private readonly")]
     public Initialiser()
@@ -95,8 +100,8 @@ public partial class Initialiser
 
     public Initialiser Register<TSubCommand>() where TSubCommand : ISubCommandBase
     {
-        var cons = VConsole.Instance;
-        var verbose = cons.Verbose;
+        //var cons = VConsole.Instance;
+        //var verbose = cons.Verbose;
         //cons.WriteLine("Registering command: ", typeof(TSubCommand).Name.InYellow());
         AddDependency<TSubCommand>();
 
@@ -110,6 +115,21 @@ public partial class Initialiser
 
         RegisteredSubCommands.Add(typeof(TSubCommand), command);
         return this;
+    }
+
+    //private Type ConfigType = null;
+    private Type? ConfigCommandType = null;
+    private Action? DeferredRegisterConfig = null;
+
+    public void WithConfig<TConfig>(TConfig? defaultConfig = null) where TConfig : class, new()
+    {
+        //ConfigType = typeof(TConfig);
+        ConfigCommandType = typeof(ConfigCommand<TConfig>);
+        var configStore = new ConfigStore<TConfig>(defaultConfig);
+        AddDependency<TConfig>(configStore.Read);
+        AddDependency<ConfigStore<TConfig>>(configStore);
+
+        DeferredRegisterConfig = () => Register<ConfigCommand<TConfig>>();
     }
 
     private readonly Dictionary<Type, Command> RegisteredSubCommands = new Dictionary<Type, Command>();
@@ -184,6 +204,31 @@ public partial class Initialiser
 
     public int Execute(Action<Dictionary<Type, Command>, Func<Type, object>> registerCommandExecution)
     {
+        if (ConfigCommandType is not null)
+        {
+            Group("Misc");
+            DeferredRegisterConfig!();
+            var command = RegisteredSubCommands[ConfigCommandType];
+
+            var KeyArg = new Argument<string>("key", () => string.Empty, "Name (or camel-cased initials) of the config property");
+            command.AddArgument(KeyArg);
+
+            var ValueArg = new Argument<string>("value", () => string.Empty, "The value to store");
+            command.AddArgument(ValueArg);
+
+
+            command.SetHandler((keyValue, valueValue) =>
+            {
+                //var instance = Resolve<ConfigCommand>();
+                var instance = (ISubCommand)Resolve(ConfigCommandType);
+                var props = instance.GetType().GetProperties();
+                props.Single(p => p.Name == "Key").SetValue(instance, keyValue);
+                props.Single(p => p.Name == "Value").SetValue(instance, valueValue);
+                instance.Execute();
+            }, KeyArg, ValueArg);
+        }
+
+
         registerCommandExecution(RegisteredSubCommands, Resolve);
 
         //if (CheckAndRemoveGlobalOption("-dc"))

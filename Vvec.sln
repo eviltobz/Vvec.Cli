@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vvec.Cli.SourceGenerator", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vvec.Cli.Tests", "Vvec.Cli.Tests\Vvec.Cli.Tests.csproj", "{5B0F30D4-1A86-4B07-9A4A-F0DCD0B484E9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vvec.Cli.SourceGenerator.Tests", "Vvec.Cli.SourceGenerator.Tests\Vvec.Cli.SourceGenerator.Tests.csproj", "{4A7149EE-19D1-49CF-BFCE-6490B8E3CA76}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vvec.Cli.SourceGenerator.Tests", "Vvec.Cli.SourceGenerator.Tests\Vvec.Cli.SourceGenerator.Tests.csproj", "{4A7149EE-19D1-49CF-BFCE-6490B8E3CA76}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

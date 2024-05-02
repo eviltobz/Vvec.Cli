@@ -9,7 +9,7 @@ public class CommandElement : IEnumerable<Coloured>
 
     public CommandElement() { }
 
-    public CommandElement(Coloured part) 
+    public CommandElement(Coloured part)
     {
         Add(part);
     }
@@ -110,7 +110,7 @@ public class CommandOutput : ICommandOutput
         retval.Add(options[options.Length - 1].InYellow())
             .Add(">".InCyan());
 
-        return retval; 
+        return retval;
     }
 
     public IEnumerable<Coloured> GetFormattedSegments(int descriptionIndent, int maxWidth)
@@ -134,7 +134,7 @@ public class CommandOutput : ICommandOutput
         {
             foreach(var bit in commandLines[i])
             {
-                yield return bit; 
+                yield return bit;
 	        }
 
             var requiredIndent = Math.Max(2, descriptionIndent - commandLines[i].Length);
@@ -171,7 +171,7 @@ public class CommandOutput : ICommandOutput
 
     }
 
-    // Initially this is very similar to the Description version, but I expect this to become more complex 
+    // Initially this is very similar to the Description version, but I expect this to become more complex
     private List<CommandElement> SplitCommandIntoLines(int maxWidth)
     {
         //var remaining = command;

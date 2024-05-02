@@ -3,6 +3,8 @@ namespace Vvec.Cli.SourceGenerator
     public static class EntryPointSource
     {
         public const string Source = @"
+using System;
+//using System.Collections.Generic;
 using Vvec.Cli.Arguments;
 
 namespace Vvec.Cli;

@@ -27,6 +27,8 @@ namespace Vvec.Cli
             var sb = new StringBuilder();
             sb.Append(
 @"using System.CommandLine;
+using System;
+using System.Collections.Generic;
 using Vvec.Cli.Arguments;
 
 namespace Vvec.Cli
@@ -81,27 +83,14 @@ namespace Vvec.Cli
 
             foreach (var arg in registration.Arguments)
             {
-                //if (arg.Kind == ArgKind.Argument)
-                //    sb.Append(@"var " + arg.Name + " = new Argument<" + arg.Type + ">(")
-                //      .Append(@"""" + arg.CliName + @""", """ + arg.CliDescription + @""");
-                //    command.AddArgument(" + arg.Name + ");");
-                //else
-                //    sb.Append(@"var " + arg.Name + " = new Option<" + arg.Type + ">(")
-                //      .Append(@"""" + arg.CliName + @""", """ + arg.CliDescription + @""");
-                //    command.AddArgument(" + arg.Name + ");");
                 sb.AppendLine(arg.GenerateRegistration());
-
             }
 
-            // Need to do Argument/Option gubbins in SourceGen rather than reflection...
-
-            //command.SetHandler( Action<");
             sb.Append(@"
                 command.SetHandler((");
             for (var i = 0; i < registration.Arguments.Length; i++)
             {
                 var arg = registration.Arguments[i];
-                //sb.Append(arg.Type).Append(" ").Append(arg.Name);
                 sb.Append(arg.Name + "Value");
                 if (i < registration.Arguments.Length - 1)
                 {
@@ -110,13 +99,6 @@ namespace Vvec.Cli
             }
             WriteHandlerWithArgs_WithReflection(sb, registration);
             //WriteHandlerWithArgs_NoReflection(sb, registration);
-
-            //sb.AppendLine(@") =>
-            //{
-            //    // Need to do IoC resolve in SourceGen rather than reflection...
-            //    var implementation = (" + registration.Name + ")resolver(typeof(" + registration.Name + @"));
-            //    implementation.Execute();
-            //});");
         }
 
         private static void WriteHandlerWithArgs_WithReflection(StringBuilder sb, ClassToRegister registration)
@@ -131,7 +113,6 @@ namespace Vvec.Cli
             {
                 sb.Append(@"
                     props.Single(p => p.Name == """ + arg.Name + @""").SetValue(instance, " + arg.Name + "Value);");
-                //instance." + arg.Name + " = " + arg.Name + ";");
             }
             sb.Append(@"
                     instance.Execute();

@@ -11,6 +11,7 @@ return entryPoint
     .Register<RunSourceGeneratorCommand>()
     .Group("Long help text stuff")
     .Register<FurtleCommand>()
+    .Register<NoDescriptionCommand>()
     .Register<VeryLongCommand>()
     .Execute();
 

@@ -2,6 +2,25 @@
 using Vvec.Cli.Arguments;
 using Vvec.Cli.UI;
 
+public class NoDescriptionCommand : ISubCommand
+{
+    private readonly IConsole cons;
+
+    public static string Name => "NoDescription";
+
+    public static string Description => null;
+
+    public NoDescriptionCommand(IConsole cons)
+    {
+        this.cons = cons;
+    }
+
+    public void Execute()
+    {
+        cons.WriteLine("I have no description");
+    }
+}
+
 public class FurtleCommand : ISubCommandAsync
 {
     //private readonly FurtleProcess furtler;

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Vvec.Prj": {
+      "commandName": "Project",
+      "commandLineArgs": "/?"
+    }
+  }
+}

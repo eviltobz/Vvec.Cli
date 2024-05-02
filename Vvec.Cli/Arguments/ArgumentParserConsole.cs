@@ -243,7 +243,7 @@ namespace Vvec.Cli.Arguments
             this.groups = groups;
         }
 
-        public void Write(string? value)
+        public void Write(string value)
         {
             if (!IsActive)
             {
@@ -252,7 +252,10 @@ namespace Vvec.Cli.Arguments
                 return;
             }
 
-            if (value == Environment.NewLine)
+            if (value == "\r") 
+                return;
+
+            if (value == "\n" || value == "\r\n")
             {
                 console.Write("/".InMagenta());
                 console.WriteLine();
@@ -260,7 +263,7 @@ namespace Vvec.Cli.Arguments
             else if (isNewline)
             {
                 WriteGroupTitle(value);
-                WriteCommand(value!);
+                WriteCommand(value);
             }
             else
             {

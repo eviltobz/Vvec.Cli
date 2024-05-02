@@ -1,4 +1,6 @@
 ﻿using System.CommandLine.IO;
+using System.Data.SqlTypes;
+using System.Windows.Markup;
 using Vvec.Cli.UI;
 
 namespace Vvec.Cli.Arguments.ParserConsole;
@@ -52,16 +54,26 @@ public class StandardWriter : IStandardStreamWriter
 
     private bool isOpts = false;
     private bool isUsage = false;
+    private int optCount = 0;
     private bool isSubCommand = false;
+
+    // This is getting nasty, it might be worth splitting out more sub-writers, at least for options
     private void WriteSegment(string value)
     {
         if (isNewline)
         {
             if (value.StartsWith(" "))
             {
-                if (isOpts && isSubCommand && value == "  -?, -h, --help")
+                if (isOpts)
                 {
-                    console.WriteLine("  --------------");
+                    if(optCount == 0 && value != "  --version")
+                        isSubCommand = true;
+
+                    if (isSubCommand && optCount > 0 && value == "  -?, -h, --help")
+                    {
+                        console.WriteLine("  --------------");
+                    }
+                    optCount++;
                 }
 
                 console.Write(value.InDarkYellow());
@@ -87,7 +99,7 @@ public class StandardWriter : IStandardStreamWriter
             if (isUsage && !string.IsNullOrWhiteSpace(value))
             {
                 var bits = value.Trim().Split(" ");
-                isSubCommand = !(bits.Length > 1 && bits[1] == "[command]");
+                //isSubCommand = !(bits.Length > 1 && bits[1] == "[command]");
                 isUsage = false;
             }
 

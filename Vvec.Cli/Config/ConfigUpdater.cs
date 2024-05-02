@@ -98,6 +98,8 @@ public interface IValidateConfig<TItem>
     public static abstract IValidateConfig<TItem>? TryCreate(string value);
 
     public TItem Value { get; }
+
+    //public static implicit operator string?(IValidateConfig<TItem> item) => item.Value?.ToString();
 }
 
 // Move these to the library & do ctor validations on em.
@@ -108,9 +110,16 @@ public interface IValidateConfig<TItem>
 // but we'd not auto check all of em at run time - a url may only be needed for one command,
 // depending on other flags, so we dont wanna impose time to check that if we're not using it.
 // (not saying we should have a way to validate when a command reads that config either, just let it fail)
+
+// Note also - System.Commandline can map an arg to FileInfo, DirectoryInfo, FileSystemInfo (dir or folder), Uri,
+// and other types with a single string param in the ctor. Maybe I should piggyback onto them with these bits,
+// rather than just having them be special strings.
 public class FilePath : IValidateConfig<string>
 {
     public string Value { get; init; }
+
+    // C# won't let us put this on an interface, we _might_ be able to do it if we swap to abstract class instead...
+    public static implicit operator string(FilePath item) => item.Value;
 
     public static IValidateConfig<string>? TryCreate(string value)
     {
@@ -124,7 +133,18 @@ public class FilePath : IValidateConfig<string>
 // can we even override the ctor on a record & bail from it?
 public class FolderPath : IValidateConfig<string>
 {
-    public string Value { get; init; }
+    private string _value;
+    public string Value { get => _value; init => _value = value + (value.EndsWith("\\") ? "" : "\\"); }
+
+    // C# won't let us put this on an interface, we _might_ be able to do it if we swap to abstract class instead...
+    public static implicit operator string(FolderPath item) => item.Value;
+
+    public FolderPath() { }
+
+    public FolderPath(string path)
+    {
+        Value = path;
+    }
 
     public static IValidateConfig<string>? TryCreate(string value)
     {

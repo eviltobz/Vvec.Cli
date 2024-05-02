@@ -34,6 +34,12 @@ public class ArgumentParserConsole : System.CommandLine.IConsole
     public bool IsInputRedirected => false;
 
 
+    public void NoGroups()
+    {
+        CurrentGroup = new List<string>();
+        Groups.Add(new("Commands", CurrentGroup));
+    }
+
     public void AddGroup(string name)
     {
         if (!Groups.Any() && CurrentGroup.Any())

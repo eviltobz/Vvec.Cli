@@ -21,12 +21,26 @@ namespace Vvec.Cli.Arguments.Introspection
             this.initialiser = initialiser;
         }
 
-        public Command SetUpCommand<TSubCommand>(UI.IConsole verbose) where TSubCommand : ISubCommandBase
+        public RootCommand SetUpRootCommand<TSubCommand>(UI.IConsole verbose) where TSubCommand : ISubCommandBase
         {
-            var nameProp = TSubCommand.Name; // typeof(TSubCommand).GetProperty(nameof(ISubCommand.Name), BindingFlags.Public | BindingFlags.Static);
-            var descriptionProp = TSubCommand.Description; // typeof(TSubCommand).GetProperty(nameof(ISubCommand.Description), BindingFlags.Public | BindingFlags.Static);
-                                                           //var command = new Command(nameProp!.GetValue(null)!.ToString()!, descriptionProp!.GetValue(null)!.ToString());
-            var command = new Command(nameProp, descriptionProp);
+            var command = new RootCommand(TSubCommand.Description);
+            SetUpCommand<TSubCommand>(command, verbose);
+            return command;
+        }
+
+        public Command SetUpSubCommand<TSubCommand>(UI.IConsole verbose) where TSubCommand : ISubCommandBase
+        {
+            var command = new Command(TSubCommand.Name, TSubCommand.Description);
+            SetUpCommand<TSubCommand>(command, verbose);
+            return command;
+        }
+
+        private /*Command*/ void SetUpCommand<TSubCommand>(Command command, UI.IConsole verbose) where TSubCommand : ISubCommandBase
+        {
+            //var nameProp = TSubCommand.Name; // typeof(TSubCommand).GetProperty(nameof(ISubCommand.Name), BindingFlags.Public | BindingFlags.Static);
+            //var descriptionProp = TSubCommand.Description; // typeof(TSubCommand).GetProperty(nameof(ISubCommand.Description), BindingFlags.Public | BindingFlags.Static);
+            //                                               //var command = new Command(nameProp!.GetValue(null)!.ToString()!, descriptionProp!.GetValue(null)!.ToString());
+            //var command = new Command(nameProp, descriptionProp);
             var bob = typeof(TSubCommand);
             //var commandX = Resolve<TSubCommand>();
             var interfaces = typeof(TSubCommand).GetInterfaces();
@@ -164,7 +178,7 @@ namespace Vvec.Cli.Arguments.Introspection
                 verbose.WriteLine("Now I just need to codegen a function to take all of them as args, and load em into the type, then hook that up to the subcommand. Simples".InDarkRed());
             }
 
-            return command;
+            //return command;
         }
 
     }

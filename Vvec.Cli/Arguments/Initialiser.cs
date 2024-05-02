@@ -22,6 +22,8 @@ public partial class Initialiser
     private readonly System.CommandLine.IConsole? argumentConsole = null;
     private readonly ArgumentParserConsole parserConsole = new ArgumentParserConsole();
 
+    private bool IsSingleCommand = false;
+
 
     private string[] args; // This not being readonly is a bit nasty, may wanna rethink things at some point...
                            // We only want to remove global args, not any that are registered for a command. So let's also pass in any global args in the ctor,
@@ -68,15 +70,22 @@ public partial class Initialiser
 
         argumentConsole = CheckAndRemoveGlobalOption("--dc")
             ? null
-            : parserConsole; // this is a bit sucky
+            : parserConsole; // this is a bit sucky  - later me: Is it? Why? Not sure what I was thinking when I wrote that...
 
-        rootCommand = new RootCommand(description);
+        this.rootCommand = new RootCommand(description);
 
         AddDependency(VConsole.Instance);
 
         meh = new Introspection.Introspection(this);
     }
 
+
+    public Initialiser AddDependency<TInterface, TImplementation>()
+    {
+        dependencies.Add(typeof(TInterface), null);
+        dependencyFuncs.Add(typeof(TInterface), () => Construct(typeof(TImplementation)));
+        return this;
+    }
 
     public Initialiser AddDependency<T>()
     {
@@ -105,7 +114,7 @@ public partial class Initialiser
         //cons.WriteLine("Registering command: ", typeof(TSubCommand).Name.InYellow());
         AddDependency<TSubCommand>();
 
-        Command command = meh.SetUpCommand<TSubCommand>(verbose);
+        Command command = meh.SetUpSubCommand<TSubCommand>(verbose);
 
         parserConsole.AddCommand(command.Name);
 
@@ -114,6 +123,21 @@ public partial class Initialiser
         rootCommand.Add(command);
 
         RegisteredSubCommands.Add(typeof(TSubCommand), command);
+        return this;
+    }
+
+    public Initialiser RegisterSingleCommand<TSubCommand>() where TSubCommand : ISubCommandBase
+    {
+        IsSingleCommand = true;
+
+        AddDependency<TSubCommand>();
+
+        rootCommand = meh.SetUpRootCommand<TSubCommand>(verbose);
+
+        parserConsole.AddCommand(rootCommand.Name);
+
+
+        RegisteredSubCommands.Add(typeof(TSubCommand), rootCommand);
         return this;
     }
 
@@ -206,7 +230,11 @@ public partial class Initialiser
     {
         if (ConfigCommandType is not null)
         {
-            Group("Misc");
+            if (IsSingleCommand)
+                parserConsole.NoGroups();
+            else
+                Group("Misc");
+
             DeferredRegisterConfig!();
             var command = RegisteredSubCommands[ConfigCommandType];
 

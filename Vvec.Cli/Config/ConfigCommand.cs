@@ -36,6 +36,22 @@ public class ConfigCommand<TConfig> : ISubCommand where TConfig : class, new()
             SetConfig();
     }
 
+    // Config collections:
+    // * In all cases, content could be string, other base type, or validatable - such as folders for prj
+    // Dictionary<string name, TValue content>
+    // * only allows distinct keys
+    // List<KeyValuePair<string name, TValue content>
+    // * allows multiple entries for the same key
+    //   * not sure when I'd need it, but it sounds feasible if you might want a 0-many type config
+    //
+    // cli config add collectionName key value
+    // cli config rm collectionName key
+    //
+    // Hashset<TValue content>
+    // * Similar to above, allows multiple entries, we only have a single batch, rather than multiple ones
+    //   * e.g. could be a bunch of paths to check for something, you don't care where it's coming from...
+    // * hashy type collection as we don't want multiple
+    // * need fuzzy matching similar to field names on the main config so you could remove it without needing the full thing
     private void SetConfig()
     {
         var updater = new ConfigUpdater<TConfig>(config, Key, Value);

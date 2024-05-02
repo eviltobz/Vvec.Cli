@@ -35,7 +35,7 @@ var defaultConfig = new Config()
     IntValue = 23
 };
 
-var entryPoint = new EntryPoint(args, "CLI tool for testing my CLI library.");
+var entryPoint = new MultiCommandEntryPoint(args, "CLI tool for testing my CLI library.");
 return entryPoint
     .WithConfig<Config>(defaultConfig)
     .Group("Interesting Functionality")

@@ -33,7 +33,7 @@ public class CommandWriter
             return;
         }
 
-        if (value == "\r") 
+        if (value == "\r")
             return;
 
         if (value == "\n" || value == "\r\n")
@@ -69,6 +69,9 @@ public class CommandWriter
 
     private void WriteOutput()
     {
+        if (!commandLines.Any())
+            return;
+
         var longestCommand = commandLines.Max(l => l.CommandLength);
         var longestDescription = commandLines.Max(l => l.DescriptionLength);
         var fullWidth = Console.BufferWidth;
@@ -85,7 +88,9 @@ public class CommandWriter
         {
             foreach (var bit in command.GetFormattedSegments(descriptionIndent, Console.BufferWidth))
                 console.Write(bit);
-	    }    
+	    }
+
+        commandLines.RemoveRange(0, commandLines.Count);
     }
 
     //private void WriteCommand(string value)

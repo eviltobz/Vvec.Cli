@@ -111,7 +111,7 @@ namespace Vvec.Cli.SourceGenerator
 
                 (CliModifier[] args, string debuggery) = GetModifiers(clss, compilation, symbol);
 
-                classesToRegister.Add(new ClassToRegister(symbolName, args, null));
+                classesToRegister.Add(new ClassToRegister(symbolName, args, debuggery));
             }
 
             return classesToRegister;

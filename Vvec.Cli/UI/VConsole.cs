@@ -33,6 +33,12 @@ public interface IConsole
     {
         IPrompt AddLine(params object[] items);
 
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="customPrompt">Defaults to "Press any key to continue." if not overridden here.</param>
+        void PressAnyKey(string? customPrompt = null);
+
         string GetFreeText(Predicate<string?>? validator = null);
         (bool isDefault, string value) GetFreeTextOrDefault(string defaultValue, Predicate<string?>? validator = null);
 

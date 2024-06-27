@@ -1,4 +1,6 @@
-﻿using System.Text.Json;
+﻿//using System.CommandLine;
+using System.Text.Json;
+using Vvec.Cli.UI;
 
 namespace Vvec.Cli.Config;
 
@@ -8,19 +10,24 @@ namespace Vvec.Cli.Config;
 public class ConfigStore<TConfig> where TConfig : new()
 {
     private const string ConfigFile = @"appconfig.json";
-    private readonly string path;
+    //private readonly string path;
     private readonly TConfig? defaultConfig;
+    private readonly IConsole cons;
+    public bool FileLoadError { get; private set; } = false;
 
-    public ConfigStore(TConfig? defaultConfig)
+    public string Path { get; private init; }
+
+    public ConfigStore(TConfig? defaultConfig, IConsole cons)
     {
+        this.cons = cons;
         this.defaultConfig = defaultConfig;
-        var dir = Path.GetDirectoryName(Environment.ProcessPath)!;
-        path = Path.Combine(dir, ConfigFile);
+        var dir = System.IO.Path.GetDirectoryName(Environment.ProcessPath)!;
+        Path = System.IO.Path.Combine(dir, ConfigStore<TConfig>.ConfigFile);
     }
 
-    public TConfig Read()
+    public TConfig? Read()
     {
-        if (File.Exists(path))
+        if (File.Exists(Path))
             return LoadConfig();
         else
             return CreateConfig();
@@ -28,13 +35,24 @@ public class ConfigStore<TConfig> where TConfig : new()
 
     public void Write(TConfig newConfig)
     {
-        File.WriteAllText(path, JsonSerializer.Serialize(newConfig));
+        var opts = new JsonSerializerOptions() { WriteIndented = true };
+        File.WriteAllText(Path, JsonSerializer.Serialize(newConfig, opts));
     }
 
-    private TConfig LoadConfig()
+    private TConfig? LoadConfig()
     {
-        var config = File.ReadAllText(path);
-        return JsonSerializer.Deserialize<TConfig>(config)!;
+        try
+        {
+            var config = File.ReadAllText(Path);
+            return JsonSerializer.Deserialize<TConfig>(config)!;
+        }
+        catch(Exception ex) // We could check for any exception here, or just presume that if it throws it's a deserialisation issue...
+        {
+            FileLoadError = true;
+            cons.WriteLine("Error loading config.".InRed(), ex.Message.InMagenta());
+            return default(TConfig);
+        }
+
     }
 
     private TConfig CreateConfig()

@@ -14,6 +14,7 @@ namespace Vvec.Cli.Arguments;
 
 public partial class Initialiser
 {
+    private static readonly object ResolvedToNull = new object();
     private readonly Dictionary<Type, object?> dependencies = new Dictionary<Type, object?>();
     private readonly Dictionary<Type, Func<object>> dependencyFuncs = new Dictionary<Type, Func<object>>();
     public RootCommand rootCommand = null;
@@ -149,7 +150,7 @@ public partial class Initialiser
     {
         //ConfigType = typeof(TConfig);
         ConfigCommandType = typeof(ConfigCommand<TConfig>);
-        var configStore = new ConfigStore<TConfig>(defaultConfig);
+        var configStore = new ConfigStore<TConfig>(defaultConfig, cons);
         AddDependency<TConfig>(configStore.Read);
         AddDependency<ConfigStore<TConfig>>(configStore);
 
@@ -181,6 +182,9 @@ public partial class Initialiser
         if (!success)
             throw new Exception($"Dependency not found: {type.FullName}");
 
+        if (instance == ResolvedToNull)
+            return null;
+
         if (instance is not null)
             return instance;
 
@@ -191,7 +195,7 @@ public partial class Initialiser
         //    instance = Construct(type);
 
         var func = dependencyFuncs[type];
-        instance = func();
+        instance = func() ?? ResolvedToNull;
 
         dependencies[type] = instance;
 
@@ -226,6 +230,11 @@ public partial class Initialiser
     }
     //public partial void RegisterCommands(Dictionary<Type, Command> registeredCommands);
 
+    // This is setting up the config command in a hardcoded manner, so changes to it aren't automagically reflected.
+    // It'd be nice if this were source-genned too, but the source-gen is running on the app we're building, but the
+    // config command is in the library that we're importing along with this. Depending on what you can get hold of
+    // to look at, it _might_ be possible to source-gen it, in a more reflectiony over the included library kind of
+    // way, but it might not...
     public int Execute(Action<Dictionary<Type, Command>, Func<Type, object>> registerCommandExecution)
     {
         if (ConfigCommandType is not null)
@@ -244,16 +253,19 @@ public partial class Initialiser
             var ValueArg = new Argument<string>("value", () => string.Empty, "The value to store");
             command.AddArgument(ValueArg);
 
+            var editOpt = new Option<bool>(new[] { "-e", "--edit" }, "Edit config file in Vim (provided key/values will be ignored)");
+            command.AddOption(editOpt);
 
-            command.SetHandler((keyValue, valueValue) =>
+            command.SetHandler((keyValue, valueValue, editValue) =>
             {
                 //var instance = Resolve<ConfigCommand>();
                 var instance = (ISubCommand)Resolve(ConfigCommandType);
                 var props = instance.GetType().GetProperties();
                 props.Single(p => p.Name == "Key").SetValue(instance, keyValue);
                 props.Single(p => p.Name == "Value").SetValue(instance, valueValue);
+                props.Single(p => p.Name == "Edit").SetValue(instance, editValue);
                 instance.Execute();
-            }, KeyArg, ValueArg);
+            }, KeyArg, ValueArg, editOpt);
         }
 
 

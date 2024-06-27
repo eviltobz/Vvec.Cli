@@ -3,6 +3,7 @@
 * Config
 	* I've got some basic config set up, and plans for a few more validated types, but it might be good to add in some collection type stuff. For Prj I'm thinking that we'll want to have collections of key/value pairs to support the known folder stuff...
 	* Maybe have a way to validate config fields in commands that use them to keep it consistent. When you run a command, it can specify which args it'll need to be good...
+	* **Manual editing of config to broken json TOTALLY borks startup** can't even start a new manual edit. Need to catch that and offer a manual edit option.
 * SourceGenning IoC
 	* This looks very in-depth. We have the current CLI app source to look at, but if we need to register classes from other libraries, we'll need to mix source genning with reflection, and it'll be a palaver. 
 * Command types

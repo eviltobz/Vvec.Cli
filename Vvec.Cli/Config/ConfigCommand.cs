@@ -1,4 +1,7 @@
-﻿using Vvec.Cli.Arguments;
+﻿using System.Collections;
+using System.Diagnostics;
+using System.Reflection;
+using Vvec.Cli.Arguments;
 using Vvec.Cli.UI;
 using IConsole = Vvec.Cli.UI.IConsole;
 
@@ -9,11 +12,15 @@ public class ConfigCommand<TConfig> : ISubCommand where TConfig : class, new()
     private readonly TConfig config;
     private readonly ConfigStore<TConfig> configStore;
 
+    // NOTE: If changing args here you need to update Initialiser.Execute to know about them too.
     [Arg("Key", "Name (or camel-cased initials) of the config property")]
     public string Key { get; init; }
 
     [Arg("Value", "The value to store")]
     public string Value { get; init; }
+
+    [Opt('e', "edit", "Open config file in Vim (Ignores any provided Key/Value pair)")]
+    public bool Edit { get; init; }
 
     public ConfigCommand(IConsole cons, ConfigStore<TConfig> configStore)
     {
@@ -30,7 +37,14 @@ public class ConfigCommand<TConfig> : ISubCommand where TConfig : class, new()
 
     public void Execute()
     {
-        if (string.IsNullOrEmpty(Key))
+        if (configStore.FileLoadError)
+        {
+            cons.StartPrompt("Opening config for manual editing. ").PressAnyKey();
+        }
+
+        if (Edit || configStore.FileLoadError)
+            OpenInVim();
+        else if (string.IsNullOrEmpty(Key))
             DisplayConfig();
         else
             SetConfig();
@@ -86,7 +100,10 @@ public class ConfigCommand<TConfig> : ISubCommand where TConfig : class, new()
         DisplayConfig(name);
     }
 
-    private static readonly Type OpenType = typeof(IValidateConfig<>);
+    private static readonly Type ValidatableType = typeof(IValidateConfig<>);
+    private static readonly Type KeyValueTypeGen = typeof(KeyValuePair<,>);
+    private static readonly Type CollectionTypeGen = typeof(ICollection<>);
+    private static readonly Type CollectionType = typeof(ICollection);
 
     private void DisplayConfig(string? targetProperty = null)
     {
@@ -97,22 +114,77 @@ public class ConfigCommand<TConfig> : ISubCommand where TConfig : class, new()
         foreach (var prop in props)
         {
             object itemValue = null;
-            if (prop.PropertyType.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == OpenType))
+            var interfaces = prop.PropertyType.GetInterfaces();
+            if (interfaces.Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == CollectionTypeGen))
             {
-                var value = prop.PropertyType.GetProperty(nameof(IValidateConfig<bool>.Value))!;
-                var validatable = prop.GetValue(config);
-                if (validatable is not null)
-                    itemValue = value.GetValue(validatable);
+                //var collection = interfaces.FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == CollectionTypeGen && i.GenericTypeArguments[0].GetGenericTypeDefinition() == KeyValueTypeGen && i.GenericTypeArguments[0].GenericTypeArguments[0] == typeof(string));
+                //var collection = interfaces.FirstOrDefault(i => !i.IsGenericType && i == CollectionType);
+                //if (collection is null)
+                if (!interfaces.Any(i => i == CollectionType))
+                {
+                    cons.WriteLine("Unknown collection type for " + prop.ToString());
+                    continue;
+                }
+
+                var collection = (ICollection)prop.GetValue(config);
+                var formatted = new List<KeyValuePair<string, string>>();
+                foreach (var unknown in collection)
+                {
+                    var unknownType = unknown.GetType();
+                    var unknownGeneric = unknownType.GetGenericTypeDefinition();
+                    if (unknownGeneric == KeyValueTypeGen && unknownType.GenericTypeArguments[0] == typeof(string))
+                    {
+                        var key = unknownType.GetProperty("Key").GetValue(unknown) as string;
+                        var valueProp = unknownType.GetProperty("Value");
+
+                        var value = GetConfigValue(valueProp, valueProp.PropertyType.GetInterfaces(), unknown);
+
+                        formatted.Add(new(key, value.ToString()));
+                    }
+                }
+
+                var maxKeyLen = formatted.Select(x => x.Key.Length).Max();
+                cons.WriteLine("  ", prop.Name.InDarkCyan(), ":");
+
+                foreach (var item in formatted)
+                {
+                    cons.WriteLine("    ", item.Key.PadRight(maxKeyLen).InYellow(), ": ", item.Value.ToString().InGreen());
+                }
             }
             else
-                itemValue = prop.GetValue(config);
+            {
+                itemValue = GetConfigValue(prop, interfaces, config);
 
-
-            if (prop.Name.ToLower() == targetProperty?.ToLower())
-                cons.WriteLine(">>", prop.Name.PadRight(maxLen).InDarkYellow(), ": ", itemValue.InDarkGreen());
-            else
-                cons.WriteLine("  ", prop.Name.PadRight(maxLen).InYellow(), ": ", itemValue.InGreen());
+                if (prop.Name.ToLower() == targetProperty?.ToLower())
+                    cons.WriteLine(">>", prop.Name.PadRight(maxLen).InDarkYellow(), ": ", itemValue.InDarkGreen());
+                else
+                    cons.WriteLine("  ", prop.Name.PadRight(maxLen).InYellow(), ": ", itemValue.InGreen());
+            }
         }
     }
 
+    private object GetConfigValue(PropertyInfo prop, Type[] interfaces, object source)
+    {
+        var bob = interfaces.FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == ValidatableType);
+        if (bob is not null)
+        {
+            var value = prop.PropertyType.GetProperty(nameof(IValidateConfig<bool>.Value));
+            var validatable = prop.GetValue(source);
+            if (validatable is not null)
+                return value.GetValue(validatable);
+
+            return "BORK!";
+        }
+        else
+            return prop.GetValue(source);
+    }
+
+
+
+
+    private void OpenInVim()
+    {
+        var vim = Process.Start("C:\\Windows\\vim.bat", configStore.Path);
+        vim.WaitForExit();
+    }
 }

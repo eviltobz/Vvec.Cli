@@ -37,6 +37,13 @@ public partial class VConsole
                 AppendPrompt(message);
         }
 
+        public void PressAnyKey(string? customPrompt = null)
+        {
+            AppendPrompt(customPrompt ?? "Press any key to continue.");
+            WritePrompt();
+            console.ReadKey();
+        }
+
         public string GetFreeText(Predicate<string?>? validator = null)
         {
             string input = DoGetFreeText(validator);

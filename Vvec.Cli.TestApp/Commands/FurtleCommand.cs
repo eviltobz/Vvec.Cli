@@ -1,5 +1,4 @@
-﻿//using System.CommandLine;
-using Vvec.Cli.Arguments;
+﻿using Vvec.Cli.Arguments;
 using Vvec.Cli.UI;
 
 public class NoDescriptionCommand : ISubCommand
@@ -63,30 +62,32 @@ public class FurtleCommand : ISubCommandAsync
         //cons.WriteLine(Path.GetFullPath(Environment.ProcessPath)).WriteLine(Path.GetDirectoryName(Environment.ProcessPath));
 
         var bob = cons.StartPrompt("Here's a bunch of random text. tsra tsrnei etsran eitsr itsra neit teitsr. Here's another bunch of random text. tsra tsrnei etsran eitsr itsra neit teitsr:")
+            .AddLine("This is a prompt - type something or get a default value")
             .GetFreeTextOrDefault("<default value>");
         cons.WriteLine("Got:", bob.InBlue());
 
         cons.WriteLine().WriteLine("I should split out several, better named commands from the unreachable code below to check different aspects of the UI stuff...".InDarkRed().OnDarkYellow());
 
-        return;
-        var bufH = System.Console.BufferHeight;
-        var bufW = System.Console.BufferWidth;
+        //return;
+        //var bufH = System.Console.BufferHeight;
+        //var bufW = System.Console.BufferWidth;
 
-        var winH = Console.WindowHeight;
-        var winW = Console.WindowWidth;
-        var winT = Console.WindowTop;
-        var winL = Console.WindowLeft;
+        //var winH = Console.WindowHeight;
+        //var winW = Console.WindowWidth;
+        //var winT = Console.WindowTop;
+        //var winL = Console.WindowLeft;
 
-        var largeH = Console.LargestWindowHeight;
-        var largeW = Console.LargestWindowWidth;
+        //var largeH = Console.LargestWindowHeight;
+        //var largeW = Console.LargestWindowWidth;
 
-        var (curL, curT) = Console.GetCursorPosition();
+        //var (curL, curT) = Console.GetCursorPosition();
 
-        cons.WriteLine("Buf:", bufW, "x", bufH, ", Win:", winW, "x", winH, ", Pos:", winL, ":", winT, ", Largest:", largeH, "x", largeW, ", Cur:", curL, "x", curT);
+        //cons.WriteLine("Buf:", bufW, "x", bufH, ", Win:", winW, "x", winH, ", Pos:", winL, ":", winT, ", Largest:", largeH, "x", largeW, ", Cur:", curL, "x", curT);
 
 
-        return;
+        //return;
 
+        cons.WriteLine("Hmmm, it looks like the async bits below aren't working now - I'll need to look into that...".InDarkRed());
 
         var app1 = cons.StartAppendable("Appendable1:").StartSpinner();
         var app2 = cons.StartAppendable("Second appendable").StartSpinner();
@@ -103,6 +104,8 @@ public class FurtleCommand : ISubCommandAsync
         cons.WriteLine("Got: ", defaulty.InDarkYellow());
         app1.Write("done");
         app2.Write("done");
+
+
 
         //var app1 = cons.StartAppendable("My ", "1st".InDarkYellow(), " appendable.");
         //var app2 = cons.StartAppendable("My ", "2nd".InDarkYellow(), " appendable.");

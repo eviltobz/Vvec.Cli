@@ -1,6 +1,6 @@
-﻿//using System.CommandLine;
-using Vvec.Cli.Arguments;
+﻿using Vvec.Cli.Arguments;
 using Vvec.Cli.UI;
+
 public class ConfigCheckCommand : ISubCommand
 {
     private readonly Config config;

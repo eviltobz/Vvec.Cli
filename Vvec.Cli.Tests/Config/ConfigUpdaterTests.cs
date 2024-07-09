@@ -111,23 +111,6 @@ public class ConfigUpdaterTests
         Assert.True(actual);
     }
 
-
-    //[TestCase("StringValue", "some content")]
-    //[TestCase("IntValue", 23)]
-    //[TestCase("BoolValue", "true")]
-    //[TestCase("AFile",@"C:\Windows\win.ini")]
-    //[TestCase("AFolder",@"C:\Windows")]
-    //public void UpdateConfig_ValidContent_ReturnsValidWithNoError(string fieldName, object content)
-    //{
-    //    var _sut = new ConfigUpdater<TestConfig>(_config, fieldName, content.ToString());
-
-    //    var _ = _sut.IsContentValid;
-
-
-    //    Assert.IsTrue(actual.isValid);
-    //    Assert.IsNull(actual.validationError);
-    //}
-
     [Test]
     public void UpdateConfig_StringValue_UpdatesConfig()
     {
@@ -192,6 +175,5 @@ public class ConfigUpdaterTests
 
         Assert.AreEqual(content, _config.AFolder.Value);
     }
-
 }
 

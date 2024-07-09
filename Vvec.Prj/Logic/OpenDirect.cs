@@ -2,7 +2,6 @@
 
 namespace Vvec.Prj.Logic;
 
-
 public class OpenDirect(IConsole cons, Config config) : IOpenDirect
 {
     public string? FindPath(string hint, string[] projectFolders)

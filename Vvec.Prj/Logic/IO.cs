@@ -17,5 +17,4 @@ public class IO : IIO
         accessor.Write(0, length);
         accessor.WriteArray(2, bytes, 0, bytes.Length);
     }
-
 }

@@ -1,13 +1,11 @@
-﻿//using System.CommandLine;
-using Vvec.Cli.Arguments;
+﻿using Vvec.Cli.Arguments;
 using Vvec.Cli.UI;
-using Vvec.Sg;
 
 public class ShowColoursCommand : ISubCommand
 {
-    private readonly Vvec.Cli.UI.IConsole cons;
+    private readonly IConsole cons;
 
-    public ShowColoursCommand(Vvec.Cli.UI.IConsole cons)
+    public ShowColoursCommand(IConsole cons)
     {
         this.cons = cons;
     }

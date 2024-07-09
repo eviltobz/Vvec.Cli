@@ -1,6 +1,4 @@
-﻿using System;
-using Vvec.Cli.Arguments.ParserConsole;
-using Vvec.Cli.Config;
+﻿using Vvec.Cli.Arguments.ParserConsole;
 using Vvec.Cli.UI;
 
 namespace Vvec.Cli.Tests.Arguments.ParserConsole;
@@ -207,10 +205,6 @@ public class CommandOutputTests
 
         var actual = CallGetFormattedSegments(descriptionIndent, maxWidth);
 
-        //DebugPrint(expected, "expected");
-        //DebugPrint(actual, "Actual");
-
-        //CollectionAssert.AreEqual(expected, actual);
         AssertOutput(expected, actual);
     }
 
@@ -244,10 +238,6 @@ public class CommandOutputTests
             "blurb\n".InGrey(),
          };
 
-        //DebugPrint(expected, "expected");
-        //DebugPrint(actual, "Actual");
-
-        //CollectionAssert.AreEqual(expected, actual);
         AssertOutput(expected, actual);
     }
 
@@ -267,7 +257,6 @@ public class CommandOutputTests
         Assert.AreEqual(expectedDescriptionLength, descriptionLength);
     }
 
-
     private void DebugPrint(IEnumerable<Coloured> output, string? title = null)
     {
         if (title is null)
@@ -283,8 +272,6 @@ public class CommandOutputTests
             else
                 Console.Write(output.ElementAt(i).Value);
         }
-        //foreach (var entry in output)
-        //    Console.Write(entry.Value);
         Console.WriteLine("--------END PRINT--------");
     }
 
@@ -295,7 +282,4 @@ public class CommandOutputTests
 
         CollectionAssert.AreEqual(expected, actual);
     }
-
-
 }
-

@@ -65,10 +65,7 @@ public interface ICommandOutput
 
 public class CommandOutput : ICommandOutput
 {
-    //private string? command;
-    //private CommandElement[] args = new CommandElement[0];
-    private CommandElement[] command;// = new CommandElement[0];
-    //private Coloured[][] args = new Coloured[0][];
+    private CommandElement[] command;
     private string? description;
 
     public void AddSegment(string? segment)
@@ -76,8 +73,6 @@ public class CommandOutput : ICommandOutput
         if (command is null)
         {
             var tokens = segment.Split(" ").Where(s => s != "");
-            //command = tokens.First();
-            //args = tokens.Skip(1).Select(FormatArgument).ToArray();
             command = tokens.Select(FormatCommandToken).ToArray();
         }
         else if (description is null)
@@ -90,13 +85,11 @@ public class CommandOutput : ICommandOutput
     {
         if (!value.StartsWith("<"))
             return new CommandElement()
-                //.Add(CommandIndent)
 		        .Add(value.InDarkYellow());
 
         return FormatArgument(value);
     }
 
-    //private Coloured[] FormatArgument(string value)
     private CommandElement FormatArgument(string value)
     {
         var options = value.Substring(1, value.Length - 2).Split("|");
@@ -128,8 +121,6 @@ public class CommandOutput : ICommandOutput
             for (int l = 0; l < requiredCommandLines; l++)
                 commandLines.Add(new CommandElement().Add(CommandIndent));
 
-
-
         for (int i = 0; i < commandLines.Count; i++)
         {
             foreach(var bit in commandLines[i])
@@ -158,7 +149,6 @@ public class CommandOutput : ICommandOutput
                 while (remaining[(--take)] != ' ' && take > 0)
                 { }
                 if (take == 0)
-                    //take = maxToTake;
                     take = remaining.Length; // window is too narrow, things are going to look borked
             }
 
@@ -171,20 +161,8 @@ public class CommandOutput : ICommandOutput
 
     }
 
-    // Initially this is very similar to the Description version, but I expect this to become more complex
     private List<CommandElement> SplitCommandIntoLines(int maxWidth)
     {
-        //var remaining = command;
-        //var retval = new List<Coloured>();
-        //while (remaining.Length > 0)
-        //{
-        //    var take = Math.Min(remaining.Length, maxWidth);
-        //    retval.Add(remaining.Substring(0, take).InDarkYellow());
-        //    remaining = take >= remaining.Length
-        //        ? ""
-        //        : " " + remaining.Substring(take);
-        //}
-        //return retval;
         var retval = new List<CommandElement>();
         var currentLine = new CommandElement(CommandIndent);
         retval.Add(currentLine);
@@ -199,7 +177,6 @@ public class CommandOutput : ICommandOutput
             else
             {
                 currentLine = new CommandElement(CommandIndent)
-                    //.Add(CommandIndent)
                     .Add(element);
                 retval.Add(currentLine);
             }
@@ -207,19 +184,7 @@ public class CommandOutput : ICommandOutput
         return retval;
     }
 
-    //public (int commandLength, int descriptionLength) GetLengths() =>
-    //    (command.Aggregate(2, (acc, com) => acc + com.Length), description?.Length ?? 0);
-
     public int CommandLength => command.Aggregate(2, (acc, com) => acc + com.Length);
 
     public int DescriptionLength => description?.Length ?? 0;
-
-
-    //private Coloured GetFormattedDescription(int descriptionIndent)
-    //{
-    //    var commandLength = command.Length;
-    //    var requiredIndent = descriptionIndent - commandLength;
-
-    //    return (new string(' ', requiredIndent) + description + "\n").InGrey();
-    //}
 }

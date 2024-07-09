@@ -14,3 +14,6 @@
 
 * Help Output
 	* The Usage section displays the full app name, this should be overridable in the EntryPoint ctor or some method on it at least.
+
+* Debuggy validation stuff
+	* I've got a placeholder in the Initialiser for verifying that all registered dependencies can be resolved, but I still need to implement it. Maybe as an extra Vvec.Cli specific switch on the help screen?

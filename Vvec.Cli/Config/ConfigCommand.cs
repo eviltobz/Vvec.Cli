@@ -117,9 +117,6 @@ public class ConfigCommand<TConfig> : ISubCommand where TConfig : class, new()
             var interfaces = prop.PropertyType.GetInterfaces();
             if (interfaces.Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == CollectionTypeGen))
             {
-                //var collection = interfaces.FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == CollectionTypeGen && i.GenericTypeArguments[0].GetGenericTypeDefinition() == KeyValueTypeGen && i.GenericTypeArguments[0].GenericTypeArguments[0] == typeof(string));
-                //var collection = interfaces.FirstOrDefault(i => !i.IsGenericType && i == CollectionType);
-                //if (collection is null)
                 if (!interfaces.Any(i => i == CollectionType))
                 {
                     cons.WriteLine("Unknown collection type for " + prop.ToString());
@@ -178,9 +175,6 @@ public class ConfigCommand<TConfig> : ISubCommand where TConfig : class, new()
         else
             return prop.GetValue(source);
     }
-
-
-
 
     private void OpenInVim()
     {

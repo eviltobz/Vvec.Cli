@@ -1,18 +1,14 @@
-﻿//using System.CommandLine;
-using System.Text.Json;
+﻿using System.Text.Json;
 using Vvec.Cli.UI;
 
 namespace Vvec.Cli.Config;
 
-
-
-
 public class ConfigStore<TConfig> where TConfig : new()
 {
     private const string ConfigFile = @"appconfig.json";
-    //private readonly string path;
     private readonly TConfig? defaultConfig;
     private readonly IConsole cons;
+
     public bool FileLoadError { get; private set; } = false;
 
     public string Path { get; private init; }
@@ -52,7 +48,6 @@ public class ConfigStore<TConfig> where TConfig : new()
             cons.WriteLine("Error loading config.".InRed(), ex.Message.InMagenta());
             return default(TConfig);
         }
-
     }
 
     private TConfig CreateConfig()

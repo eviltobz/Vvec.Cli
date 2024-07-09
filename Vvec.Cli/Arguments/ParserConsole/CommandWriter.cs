@@ -9,6 +9,8 @@ public class CommandWriter
     private const string Indent = "  ";
 
     private bool isNewline = true;
+    private CommandOutput currentCommandOutput;
+    private int groupIndex = 0;
 
     public bool IsActive { get; private set; }
 
@@ -17,10 +19,8 @@ public class CommandWriter
         this.groups = groups;
     }
 
-    //private List<IEnumerable<Coloured>> commandLines = new List<IEnumerable<Coloured>>();
-
     private List<ICommandOutput> commandLines = new List<ICommandOutput>();
-    //private void AddNewCommandLine(Coloured item) => console.WriteLine(item); // commandLines.Add(new[] { item });
+
     private void DoWriteGroupTitle(string title) => commandLines.Add(new CommandHeading(title));
 
     private bool previousWasNewline = false;
@@ -38,12 +38,6 @@ public class CommandWriter
 
         if (value == "\n" || value == "\r\n")
         {
-            //int descriptionIndent = 20;
-            //var bits = currentCommandOutput.GetFormattedSegments(descriptionIndent, Console.BufferWidth);
-
-
-            //console.Write("/".InMagenta());
-            //console.WriteLine();
             if(currentCommandOutput is not null)
                 commandLines.Add(currentCommandOutput);
             currentCommandOutput = null;
@@ -93,61 +87,30 @@ public class CommandWriter
         commandLines.RemoveRange(0, commandLines.Count);
     }
 
-    //private void WriteCommand(string value)
-    //{
-
-    //    PrintOptionWithArgs(value);
-    //    return;
-    //    var (command, args) = SplitCommand(value);
-
-    //    console.Write("-".InBlue());
-    //    console.Write(Indent, command.InDarkYellow());
-
-    //    for (int i = 0; i < args.Length; i++)
-    //    {
-    //        console.Write(" ", args[i].InCyan());
-    //    }
-
-    //    if (value.StartsWith(" ") && value.Contains("<") && /* value.Contains("|") && */ value.Contains(">"))
-    //    {
-    //        PrintOptionWithArgs(value);
-    //    }
-    //}
-
     private (string command, string[] args) SplitCommand(string value)
     {
         var split = value.Trim().Split(" ");
         return (split.First(), split.Skip(1).ToArray());
     }
 
-    private CommandOutput currentCommandOutput;
+
     private void WriteDescription(string value)
     {
-        //console.Write("!".InRed());
-        //console.Write(value);
         currentCommandOutput.AddSegment(value);
-        //console.Write("*".InGrey());
     }
-
-    private int groupIndex = 0;
 
     private void WriteGroupTitle(string value)
     {
         if (!IsActive && !groups.Any()) // Default heading
-            //console.Write(value.InGreen());
             DoWriteGroupTitle("Commands:");
 
         if (groups.Any() && (groupIndex < (groups.Count - 1) || !IsActive))
         {
             if (value == "Commands:")
             {
-                //console.Write((groups[0].Key + ":").InGreen());
                 DoWriteGroupTitle((groups[0].Key + ":"));
                 return;
             }
-
-            //if (!processingCommands)
-            //    return true;
 
             var trimmedValue = value;
             if (value.Length > 2)
@@ -159,41 +122,14 @@ public class CommandWriter
             if (groups[groupIndex + 1].Value.Contains(trimmedValue))
             {
                 groupIndex++;
-                //console.WriteLine((groups[groupIndex].Key + ":").InGreen());
                 DoWriteGroupTitle((groups[groupIndex].Key + ":"));
             }
         }
     }
 
-
     private void WriteCommand(string value)
     {
         currentCommandOutput = new CommandOutput();
         currentCommandOutput.AddSegment(value);
-        //var bits = value.Trim().Split(" ");
-        //console.Write("  ");
-        //var count = 0;
-        //foreach (var bit in bits)
-        //{
-        //    if (!bit.StartsWith("<"))
-        //        console.Write(bit.InDarkYellow());
-        //    else
-        //        PrintArg(bit);
-
-        //    if (count++ < (bits.Length - 1))
-        //        console.Write(" ");
-        //}
     }
-
-    //private void PrintArg(string value)
-    //{
-    //    var options = value.Substring(1, value.Length - 2).Split("|");
-
-    //    console.Write("<".InCyan());
-    //    for (int i = 0; i < options.Length - 1; i++)
-    //        console.Write(options[i].InYellow(), "|".InCyan());
-
-    //    console.Write(options[options.Length - 1].InYellow());
-    //    console.Write(">".InCyan());
-    //}
 }

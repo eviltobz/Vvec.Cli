@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using System.Runtime.CompilerServices;
 
 namespace Vvec.Cli.Config;
 
@@ -9,11 +8,11 @@ public class ConfigUpdater<TConfig> where TConfig : class, new()
 
     private readonly TConfig _config;
     private readonly string _content;
-    private object? _validatedValue;
     private readonly PropertyInfo[] _allProps;
     private readonly PropertyInfo[] _matchingProps;
     private readonly PropertyInfo? prop;
 
+    private object? _validatedValue;
 
     public ConfigUpdater(TConfig config, string key, string content)
     {
@@ -98,11 +97,8 @@ public interface IValidateConfig<TItem>
     public static abstract IValidateConfig<TItem>? TryCreate(string value);
 
     public TItem Value { get; }
-
-    //public static implicit operator string?(IValidateConfig<TItem> item) => item.Value?.ToString();
 }
 
-// Move these to the library & do ctor validations on em.
 // Want validations to fail hard when setting the value from the command handler
 // but not when loading it up from disk, or creating a default config
 // Maybe add internal IsValid flag so the cli apps don't see it, then the command handler
@@ -130,7 +126,6 @@ public class FilePath : IValidateConfig<string>
     }
 }
 
-// can we even override the ctor on a record & bail from it?
 public class FolderPath : IValidateConfig<string>
 {
     private string _value;
@@ -170,11 +165,3 @@ public class Url : IValidateConfig<string>
 // using it in a 'proper' command - let the display config stuff just show some *s
 public class Secret
 { }
-
-// How should we do a custom validation?
-// * attribute on the field in the config class?
-//   * Nice for using the config, maybe not so nice for creating it
-// * base generic type with an abstract predicate?
-//   * Maybe better for creating the config, but you need to get the inner type to use it
-
-

@@ -11,11 +11,6 @@ public class ErrorWriter : IStandardStreamWriter
 
     public void Write(string? value)
     {
-        //if (value == "Required command was not provided.\r\n"
-        //    || (value == "\r\n" && writeCount == 0)
-        //    || errors.Contains(value))
-        //    return;
-
         if (value == "Required command was not provided." + Environment.NewLine
             || (value == Environment.NewLine && writeCount == 0)
             || errors.Contains(value))

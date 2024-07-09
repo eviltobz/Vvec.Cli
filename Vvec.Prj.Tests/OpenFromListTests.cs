@@ -52,7 +52,6 @@ public class OpenFromListTests
         testConsole.SetupLinesToRead("blah");
         sut.ChoosePath(projectFolders);
 
-        testConsole.AssertLineContains("yourmum");
         testConsole.AssertLineContains("[0]", @"Path1");
         testConsole.AssertLineContains("[1]", @"Path2");
     }

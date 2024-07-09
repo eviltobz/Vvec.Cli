@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -11,12 +10,10 @@ namespace Vvec.Cli.SourceGenerator
     [Generator]
     public class CommandRegistrationGenerator : IIncrementalGenerator
     {
-
-        private static string debuggery = "";
+        private static string debugString = "";
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-
             context.RegisterPostInitializationOutput(ctx =>
             {
                 ctx.AddSource(
@@ -38,6 +35,7 @@ namespace Vvec.Cli.SourceGenerator
                 static (spc, source) => Execute(source.Item1, source.Item2, spc));
 
         }
+
         private static ClassDeclarationSyntax? GetSemanticTargetForGeneration(GeneratorSyntaxContext thingy)
         {
             var classDeclarationSyntax = (ClassDeclarationSyntax)thingy.Node;
@@ -59,17 +57,15 @@ namespace Vvec.Cli.SourceGenerator
                 return;
             }
 
-            // I'm not sure if this is actually necessary, but `[LoggerMessage]` does it, so seems like a good idea!
             IEnumerable<ClassDeclarationSyntax> distinctClasses = classes.Distinct();
 
-            // Convert each EnumDeclarationSyntax to an EnumToGenerate
             var implementor = new CommandRegistrationGeneratorImpl(compilation, context.CancellationToken);
             List<ClassToRegister> classesToRegister = implementor.GetTypesToGenerate(distinctClasses);
 
             if (classesToRegister.Any())
             {
                 string result = RegistrationSourceGenerationHelper.GenerateClassStuff(classesToRegister);
-                context.AddSource("ClassStuff.g.cs", SourceText.From(result, Encoding.UTF8));
+                context.AddSource("CommandRegistration.g.cs", SourceText.From(result, Encoding.UTF8));
             }
         }
     }
@@ -148,18 +144,7 @@ namespace Vvec.Cli.SourceGenerator
                 }
             }
 
-            debuggery = "DEBUGGERY:";
-            {
-                var tobz = "meh";
-                debuggery += tobz;
-            }
-            {
-                var tobz = "narf";
-                debuggery += tobz;
-            }
-
             return (arguments, debuggery);
         }
-
     }
 }

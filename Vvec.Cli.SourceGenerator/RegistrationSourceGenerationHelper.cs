@@ -152,13 +152,13 @@ namespace Vvec.Cli
 
         private static void WriteDebuggery(List<ClassToRegister> classesToRegister, StringBuilder sb)
         {
-            var debuggery = classesToRegister.Where(c => c.debuggery is not null);
+            var debuggery = classesToRegister.Where(c => c.debugString is not null);
             if (debuggery.Any())
             {
                 sb.AppendLine("const string debuggery = @\"");
                 foreach (var thing in debuggery)
                 {
-                    sb.AppendLine(thing.Name + ": " + thing.debuggery);
+                    sb.AppendLine(thing.Name + ": " + thing.debugString);
                 }
                 sb.AppendLine("\";");
             }

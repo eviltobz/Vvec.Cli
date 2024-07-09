@@ -1,7 +1,4 @@
-﻿//using DaznCli.Enums;
-
-namespace Vvec.Cli.UI;
-
+﻿namespace Vvec.Cli.UI;
 
 public partial class VConsole
 {
@@ -161,9 +158,6 @@ public partial class VConsole
 
         private void RePromptForInvalidInput(object input, int clearLinesOffset = 0)
         {
-            //console.ClearLines(lines.Count + clearLinesOffset);
-            //WritePrompt();
-
             console.ClearLine()
                 .Write(lines.Last().ToArray())
                 .Write("(\"".InRed()).Write(input.ToString()).Write("\" is invalid) :".InRed());
@@ -171,9 +165,6 @@ public partial class VConsole
 
         private void ShowFinalPromptAndInput(object input, int clearLinesOffset = 0)
         {
-            //console.ClearLines(lines.Count + clearLinesOffset);
-            //WritePrompt().WriteLine(input);
-
             console
                 .ClearLine()
                 .Write(lines.Last().ToArray())

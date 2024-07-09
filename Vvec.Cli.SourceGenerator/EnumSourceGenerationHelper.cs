@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿// This was taken from a source generator tutorial and isn't really part of this library - it's just left in for further reference
+using System.Text;
 
 namespace Vvec.Cli.SourceGenerator
 {

@@ -1,71 +1,4 @@
-﻿//using DaznCli.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Vvec.Cli.UI;
-// Can we get some easy way to create levels for console writes (at least 2 for normal & verbose) then have some standard verbose flag in the CLI for extra info?
-// Maybe have a top level IConsole & adds a Versbose property with an IConsoleWriter. Move all of the non-interactive writes to IConsoleWriter, & have IConsole implement it.
-// VConsole can just return itself in the Verbose property if enabled, or a null object if not.
-// Or would it just be better to duplicate up the Write/WriteLine & mebe StartAppendable with different level suffixes?
-// Not sure I like the idea of including a WriteLevel enum in the Write calls... We're using (params object[]? items) so we couldn't add it as an optional that defaults to normal
-// verbosity, so all calls would need to be modified to include it
-public interface IConsole
-{
-    [Obsolete("Not obsolete, I just need to mess around with splitting the interfaces & stuff. See comment about IConsoleWriter")]
-    IConsole Verbose { get; }
-    IConsole Write(params object[]? items);
-    IConsole WriteLine(params object[]? items);
-    IConsole WriteLine();
-
-    IConsole ClearLine();
-    //IConsole ClearLines(int numberToClear);
-
-    IPrompt StartPrompt(params object[] items);
-    IAppendableLine StartAppendable(params object[] items);
-
-    void Abort(params object[] items);
-
-    public interface IPrompt
-    {
-        IPrompt AddLine(params object[] items);
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="customPrompt">Defaults to "Press any key to continue." if not overridden here.</param>
-        void PressAnyKey(string? customPrompt = null);
-
-        string GetFreeText(Predicate<string?>? validator = null);
-        (bool isDefault, string value) GetFreeTextOrDefault(string defaultValue, Predicate<string?>? validator = null);
-
-        TEnum GetEnumSelection<TEnum>(
-            TEnum? defaultValue = null,
-            Colour? optionsColour = null,
-            Colour? defaultValueColour = null)
-            where TEnum : struct, Enum;
-
-        YesNo GetConfirmation(Colour? optionsColour = null, bool caseSensitive = false);
-    }
-
-    public interface IAppendableLine
-    {
-        IAppendableLine Write(params object[] items);
-        IAppendableLine StartSpinner();
-    }
-}
-
-internal interface IInternalConsole : IConsole
-{
-    string? ReadLine();
-
-    ConsoleKeyInfo ReadKey();
-
-    IInternalConsole DoWrite(string? text, Colour? foregroundColour = null, Colour? backgroundColour = null, bool updateCurrentInfo = true);
-}
+﻿namespace Vvec.Cli.UI;
 
 public partial class VConsole : IConsole, IInternalConsole
 {
@@ -80,24 +13,19 @@ public partial class VConsole : IConsole, IInternalConsole
     public static TestConsole CreateTestConsole(Action<string> assertFail) =>
         new TestConsole((console, items) => new PromptImplementation(console), assertFail);
 
-    //public IConsole Verbose { get; private set; } = _instance;
-
-    //public static void SetVerbose()
-    //{
-    //    ((VConsole)_instance).Verbose = new NullWriter();
-    //}
     public IConsole Verbose { get; private set; } = new NullWriter();
 
     public static void SetVerbose()
     {
         ((VConsole)_instance).Verbose = _instance;
     }
-
     #endregion
 
-    private readonly Stack<int> _previousLineLengths = new Stack<int>();
-    private int _currentLineLength;
     private static object locker = new object();
+    private readonly Stack<int> _previousLineLengths = new Stack<int>();
+
+    private int _currentLineLength;
+    private HashSet<AppendableLineImplementation> _appendableLines = new();
 
     IInternalConsole DoWrite(string? text, Colour? foregroundColour = null, Colour? backgroundColour = null, bool updateCurrentInfo = true)
     {
@@ -147,19 +75,16 @@ public partial class VConsole : IConsole, IInternalConsole
             }
         return this;
     }
+
     public IConsole WriteLine(params object[]? items)
     {
         return Write(items).WriteLine();
     }
+
     public IConsole WriteLine()
     {
         lock (locker)
         {
-            //foreach (var line in _appendableLines)
-            //    line.Offset++;
-
-            //_previousLineLengths.Push(_currentLineLength);
-            //_currentLineLength = 0;
             TrackNewLine();
             Console.WriteLine();
 
@@ -169,9 +94,6 @@ public partial class VConsole : IConsole, IInternalConsole
 
     private void TrackNewLine()
     {
-        //foreach (var length in _previousLineLengths)
-        //    Write($"{length},".InDarkCyan());
-
         foreach (var line in _appendableLines)
             line.Offset++;
 
@@ -209,29 +131,6 @@ public partial class VConsole : IConsole, IInternalConsole
         }
     }
 
-    //public IConsole ClearLines(int numberToClear)
-    //{
-    //    lock (locker)
-    //    {
-    //        if (numberToClear > _previousLineLengths.Count + 1)
-    //            throw new ArgumentException($"Asked to clear {numberToClear} lines, but there are only {_previousLineLengths.Count + 1}");
-
-    //        if (numberToClear < 1)
-    //            throw new ArgumentException($"Asked to clear {numberToClear} lines. Need a number >= 1");
-
-    //        ClearLine();
-    //        for (int i = 1; i < numberToClear; i++)
-    //        {
-    //            _currentLineLength = _previousLineLengths.Pop();
-    //            var current = Console.GetCursorPosition();
-    //            Console.SetCursorPosition(0, current.Top - 1);
-    //            ClearLine();
-    //        }
-
-    //        return this;
-    //    }
-    //}
-
     ConsoleKeyInfo IInternalConsole.ReadKey()
     {
         lock (locker)
@@ -242,13 +141,6 @@ public partial class VConsole : IConsole, IInternalConsole
             var end = Console.GetCursorPosition();
             if (end.Left > start.Left)
                 _currentLineLength += (end.Left - start.Left);
-
-            if (retval.Key == ConsoleKey.Enter)
-            {
-                //_previousLineLengths.Push(_currentLineLength);
-                //_currentLineLength = 0;
-                //TrackNewLine();
-            }
 
             // Escape borks the console briefly. The first printable character in a string to be displayed, won't be shown.
             // If you try to just print some whitespace, that won't fix it, it needs to be something significant.
@@ -352,19 +244,14 @@ public partial class VConsole : IConsole, IInternalConsole
         }
     }
 
-    private HashSet<AppendableLineImplementation> _appendableLines = new();
-
     private class AppendableLineImplementation : IConsole.IAppendableLine
     {
         private static object locker = new object();
         private readonly VConsole console;
-        //private readonly char[] frames = new[] { '|', '/', '-', '\\' };
-        //private Task spinTask;
         private Spinner spinner;
 
         public int Offset = 1;
         public int Length = 0;
-        //private bool spinning = false;
 
         public AppendableLineImplementation(VConsole console, int length)
         {
@@ -374,11 +261,7 @@ public partial class VConsole : IConsole, IInternalConsole
 
         public IConsole.IAppendableLine StartSpinner()
         {
-            //spinning = true;
-            //console.AppendableWrite(this, frames[3]);
-            //spinTask = DoSpinner();
             spinner = new Spinner(this);
-
             return this;
         }
 
@@ -389,13 +272,13 @@ public partial class VConsole : IConsole, IInternalConsole
             private readonly AppendableLineImplementation appender;
             private bool spinning = true;
 
-
             public Spinner(AppendableLineImplementation appender)
             {
                 this.appender = appender;
                 appender.console.AppendableWrite(appender, frames[0]);
                 DoSpinner();
             }
+
             public void Stop() => spinning = false;
 
             public async Task DoSpinner()
@@ -403,7 +286,7 @@ public partial class VConsole : IConsole, IInternalConsole
                 var frame = 0;
                 var colour = 0;
                 var colourStep = -1;
-                //var colour = Colour.Black;
+
                 while (spinning)
                 {
                     lock (locker)
@@ -426,7 +309,6 @@ public partial class VConsole : IConsole, IInternalConsole
 
         public IConsole.IAppendableLine Write(params object[] items)
         {
-            //spinning = false;
             lock (locker)
             {
                 if (spinner is not null)
@@ -440,7 +322,6 @@ public partial class VConsole : IConsole, IInternalConsole
             return this;
         }
     }
-
 
     private class NullWriter : IConsole
     {
@@ -479,139 +360,6 @@ public partial class VConsole : IConsole, IInternalConsole
         {
             return this;
         }
-    }
-}
-
-
-
-
-
-
-
-//public class TestPrompt : IConsole.IPrompt
-//{
-//    public TestPrompt()
-//    {
-//        var impl = new VConsole.PromptImplementation();
-//    }
-//    IConsole.IPrompt IConsole.IPrompt.AddLine(params object[] items) => throw new NotImplementedException();
-//    YesNo IConsole.IPrompt.GetConfirmation(Colour? optionsColour, bool caseSensitive) => throw new NotImplementedException();
-//    TEnum IConsole.IPrompt.GetEnumSelection<TEnum>(TEnum? defaultValue, Colour? optionsColour, Colour? defaultValueColour) => throw new NotImplementedException();
-//    string IConsole.IPrompt.GetFreeText(Predicate<string?>? validator) => throw new NotImplementedException();
-//    (bool isDefault, string value) IConsole.IPrompt.GetFreeTextOrDefault(string defaultValue, Predicate<string?>? validator) => throw new NotImplementedException();
-//}
-
-public class TestConsole : IInternalConsole
-{
-    private readonly Func<IInternalConsole, object[], VConsole.PromptImplementation> createPrompt;
-    private readonly Action<string> assertFail;
-
-    private readonly List<string> writtenLines = new();
-    private StringBuilder currentLine = new StringBuilder();
-    //public IReadOnlyCollection<string> WrittenLines { get => writtenLines; }
-
-    private IEnumerator<string>? linesToRead;
-
-    internal TestConsole(
-        Func<IInternalConsole, object[], VConsole.PromptImplementation> createPrompt,
-        Action<string> assertFail)
-    {
-        this.assertFail = assertFail;
-        this.createPrompt = createPrompt;
-    }
-
-    public TestConsole SetupLinesToRead(params string[] lines)
-    {
-        return this.SetupLinesToRead(lines as IEnumerable<string>);
-    }
-
-    public TestConsole SetupLinesToRead(IEnumerable<string> lines)
-    {
-        linesToRead = lines.GetEnumerator();
-        return this;
-    }
-
-    private void PreAssertWork()
-    {
-        if (currentLine.Length > 0)
-            (this as IConsole).WriteLine();
-    }
-
-    public void AssertLineContains(params string[] expected)
-    {
-        PreAssertWork();
-
-        var normalised = expected.Select(x => x.ToUpper());
-
-        var matches = writtenLines.Any(l => normalised.All(n => l.ToUpper().Contains(n)));
-
-        const string spacer = "----------";
-
-        if (!matches)
-        {
-            var outputBuilder = new StringBuilder();
-            foreach (var line in writtenLines)
-                outputBuilder.AppendLine(line);
-            var fullOutput = outputBuilder.ToString();
-            var reportStrings = expected.Select(x => $"'{x}'");
-            var plural = expected.Length > 1;
-            assertFail($"The string{(plural ? "s" : "")} {string.Join(", ", reportStrings)} " +
-                $"{(plural ? "were" : "was")} not written in a single line to the console. The full output was:"
-                + Environment.NewLine + "-----START-----"
-                + Environment.NewLine + fullOutput
-                + "------END------");
-        }
-    }
-
-    string? IInternalConsole.ReadLine()
-    {
-        linesToRead.MoveNext();
-        return linesToRead.Current;
-    }
-
-    ConsoleKeyInfo IInternalConsole.ReadKey() => throw new NotImplementedException();
-
-    IInternalConsole IInternalConsole.DoWrite(string? text, Colour? foregroundColour = null, Colour? backgroundColour = null, bool updateCurrentInfo = true) => throw new NotImplementedException();
-
-
-    IConsole IConsole.Verbose => throw new NotImplementedException();
-
-    void IConsole.Abort(params object[] items) => throw new NotImplementedException();
-    IConsole IConsole.ClearLine() => this;
-    IConsole.IAppendableLine IConsole.StartAppendable(params object[] items) => throw new NotImplementedException();
-    IConsole.IPrompt IConsole.StartPrompt(params object[] items)
-    {
-        return new VConsole.PromptImplementation(this, items);
-    }
-
-    IConsole IConsole.Write(params object[]? items)
-    {
-        AppendToCurrentLine(items);
-        return this;
-    }
-    IConsole IConsole.WriteLine(params object[]? items)
-    {
-        AppendToCurrentLine(items);
-        (this as IConsole).WriteLine();
-        return this;
-    }
-
-    private void AppendToCurrentLine(object[]? items)
-    {
-        foreach (var item in items)
-        {
-            if (item is Coloured coloured)
-                currentLine.Append(coloured.Value);
-            else
-                currentLine.Append(item.ToString());
-        }
-    }
-
-    IConsole IConsole.WriteLine()
-    {
-        writtenLines.Add(currentLine.ToString());
-        currentLine = new StringBuilder();
-        return this;
     }
 }
 

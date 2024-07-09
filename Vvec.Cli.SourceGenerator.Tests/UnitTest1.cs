@@ -6,7 +6,6 @@ namespace Vvec.Cli.SourceGenerator.Tests
 {
     public class Tests
     {
-
         [Test]
         public async Task CanCompile____()
         {

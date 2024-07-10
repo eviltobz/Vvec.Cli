@@ -1,9 +1,7 @@
-# App Ideas
+# Vvec.Cli
 
-## Project Navigator
-Build on my Dyn 'd' powershell script for quick access to different folders in a common project. 
-Have config to set the root directory, and maybe names for a few main folders within that you want 
-quick access to. Oh, and allow other folders outside of the project heirarchy too (e.g. my eviltobz 
-git repo). Have some fuzzy matching on a supplied arg so it'll go straight to a folder that it 
-matches. If it's listing the folders, have the number to select, but also allow text and the fuzzy
-matching again.
+This is my very opinionated library for writing CLI apps.
+
+It wraps the MS System.Commandline stuff to work in a way that I find more pleasing. It has a bunch of functionality for writing to and reading from the console, including simple ways to add some colour formatting. It dabbles with source generators for doing some startup stuff more efficiently that you could with reflection, and has some simple config handling too. It's not exactly production-quality code, and due to the heavy UI interaction there's not great test coverage.
+
+The Vvec.Prj project uses it to create a simple command line tool for navigating a project folder that contains several git repos.

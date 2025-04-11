@@ -12,8 +12,10 @@ public class PrjCommand(IConsole cons, Config config, IIO io, IOpenDirect openDi
     [Arg("Shortcut", "Match to a configured shortcut or folder in the project root to open directly")]
     public string Shortcut { get; init; }
 
-    [Opt('g', "git", "Show git status")]
-    public bool Git { get; init; }
+    // I might want to make git stuff an option in the future, if it gets slow, but for now
+    // it's nice & snappy, so let's just always do it...
+    //[Opt('g', "git", "Show git status")]
+    //public bool Git { get; init; }
 
     public void Execute()
     {
@@ -30,9 +32,20 @@ public class PrjCommand(IConsole cons, Config config, IIO io, IOpenDirect openDi
             path = openDirect.FindPath(Shortcut, root);
 
         if (path is null)
-            path = openFromList.ChoosePath(root, Git);
+            path = openFromList.ChoosePath(root, true);
 
         io.ReturnPathToShell(path);
     }
 }
 
+//public class GitUpdateCommand(IConsole cons, Config config, IIO io, IOpenDirect openDirect, OpenFromList openFromList) : ISubCommandAsync
+//{
+//    public static string Name => "update";
+
+//    public static string Description => "Update any git repos on master without pending changes";
+
+//    public Task Execute()
+//    {
+//        throw new NotImplementedException();
+//    }
+//}

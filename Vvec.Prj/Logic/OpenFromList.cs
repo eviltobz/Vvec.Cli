@@ -13,20 +13,28 @@ public class OpenFromList(IConsole cons, Config config, IOpenDirect openDirect)
         }
 
         cons.WriteLine($"Project Folders in {config.ProjectRoot}".InGreen());
+
+        var tasks = new Task[projectFolders.Length];
         for (int i = 0; i < projectFolders.Length; i++)
         {
             var directory = projectFolders[i];
-            cons.Write("  [", i.InYellow(), "] ", directory.Substring(config.ProjectRoot!.Value.Length));
-            if (git)
+            var line = cons.StartAppendable("  [", i.InYellow(), "] ", directory.Substring(config.ProjectRoot!.Value.Length));
+            var task = new Task(() =>
             {
-                var repo = new Git(directory);
-                if (repo.IsValid)
-                    cons.Write(" (", repo.HasUncommittedChanges ? repo.CurrentBranch.InRed() : repo.CurrentBranch.InGreen(), ")");
-                else
-                    cons.Write(" (", "N/A".InDarkGrey(), ")");
-            }
-            cons.WriteLine();
+                if (git)
+                {
+                    line.StartSpinner();
+                    var repo = new Git(directory);
+                    if (repo.IsValid)
+                        line.Write(" (", repo.HasUncommittedChanges ? repo.CurrentBranch.InRed() : repo.CurrentBranch.InGreen(), ")");
+                    else
+                        line.Write(" (", "N/A".InDarkGrey(), ")");
+                }
+            });
+            tasks[i] = task;
+            task.Start();
         }
+        Task.WhenAll(tasks).Wait();
 
         var selection = cons.StartPrompt("Select folder").GetFreeText();
 

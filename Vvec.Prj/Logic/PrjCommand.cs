@@ -12,6 +12,9 @@ public class PrjCommand(IConsole cons, Config config, IIO io, IOpenDirect openDi
     [Arg("Shortcut", "Match to a configured shortcut or folder in the project root to open directly")]
     public string Shortcut { get; init; }
 
+    [Opt('g', "git", "Show git status")]
+    public bool Git { get; init; }
+
     public void Execute()
     {
         if (config.ProjectRoot is null)
@@ -27,7 +30,7 @@ public class PrjCommand(IConsole cons, Config config, IIO io, IOpenDirect openDi
             path = openDirect.FindPath(Shortcut, root);
 
         if (path is null)
-            path = openFromList.ChoosePath(root);
+            path = openFromList.ChoosePath(root, Git);
 
         io.ReturnPathToShell(path);
     }

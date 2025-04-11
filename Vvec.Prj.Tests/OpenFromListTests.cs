@@ -40,7 +40,7 @@ public class OpenFromListTests
     public void ListsShortcuts()
     {
         testConsole.SetupLinesToRead("blah");
-        sut.ChoosePath(projectFolders);
+        sut.ChoosePath(projectFolders, false);
 
         testConsole.AssertLineContains("[config1]", @"somepath\config1");
         testConsole.AssertLineContains("[config2]", @"otherpath\config2");
@@ -50,7 +50,7 @@ public class OpenFromListTests
     public void ListsProjectFolders()
     {
         testConsole.SetupLinesToRead("blah");
-        sut.ChoosePath(projectFolders);
+        sut.ChoosePath(projectFolders, false);
 
         testConsole.AssertLineContains("[0]", @"Path1");
         testConsole.AssertLineContains("[1]", @"Path2");
@@ -77,7 +77,7 @@ public class OpenFromListTests
         };
         testConsole.SetupLinesToRead(number);
 
-        var actual = sut.ChoosePath(projectFolders);
+        var actual = sut.ChoosePath(projectFolders, false);
 
         Assert.AreEqual(@"projectRoot\path" + number, actual);
         mockOpenDirect.VerifyNoOtherCalls();
@@ -93,7 +93,7 @@ public class OpenFromListTests
         mockOpenDirect.Setup(x => x.FindPath(input, projectFolders)).Returns(openDirectResponse);
         testConsole.SetupLinesToRead(input);
 
-        var actual = sut.ChoosePath(projectFolders);
+        var actual = sut.ChoosePath(projectFolders, false);
 
         mockOpenDirect.Verify(x => x.FindPath(input, projectFolders), Times.Once());
         Assert.AreEqual(openDirectResponse, actual);
@@ -106,7 +106,7 @@ public class OpenFromListTests
     {
         testConsole.SetupLinesToRead(input);
 
-        var actual = sut.ChoosePath(projectFolders);
+        var actual = sut.ChoosePath(projectFolders, false);
 
         Assert.IsNull(actual);
         mockOpenDirect.VerifyNoOtherCalls();

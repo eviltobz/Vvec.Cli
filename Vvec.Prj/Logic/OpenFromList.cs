@@ -4,7 +4,7 @@ namespace Vvec.Prj.Logic;
 
 public class OpenFromList(IConsole cons, Config config, IOpenDirect openDirect)
 {
-    public string? ChoosePath(string[] projectFolders)
+    public string? ChoosePath(string[] projectFolders, bool git)
     {
         cons.WriteLine("Shortcuts".InGreen());
         foreach (var shortcut in config.Shortcuts)
@@ -16,7 +16,16 @@ public class OpenFromList(IConsole cons, Config config, IOpenDirect openDirect)
         for (int i = 0; i < projectFolders.Length; i++)
         {
             var directory = projectFolders[i];
-            cons.WriteLine("  [", i.InYellow(), "] ", directory.Substring(config.ProjectRoot!.Value.Length));
+            cons.Write("  [", i.InYellow(), "] ", directory.Substring(config.ProjectRoot!.Value.Length));
+            if (git)
+            {
+                var repo = new Git(directory);
+                if (repo.IsValid)
+                    cons.Write(" (", repo.HasUncommittedChanges ? repo.CurrentBranch.InRed() : repo.CurrentBranch.InGreen(), ")");
+                else
+                    cons.Write(" (", "N/A".InDarkGrey(), ")");
+            }
+            cons.WriteLine();
         }
 
         var selection = cons.StartPrompt("Select folder").GetFreeText();

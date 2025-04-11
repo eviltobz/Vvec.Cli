@@ -2,7 +2,7 @@
 
 try
 {
-	C:\git\eviltobz\Vvec\Vvec.Prj\bin\Debug\net8.0\Vvec.Prj.exe $args
+	C:\dev\eviltobz\Vvec.Cli\Vvec.Prj\bin\Debug\net8.0\Vvec.Prj.exe $args
 
 	$accessor = $response.CreateViewAccessor();
 	try

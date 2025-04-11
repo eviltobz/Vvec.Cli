@@ -160,15 +160,16 @@ public class ConfigCommand<TConfig> : ISubCommand where TConfig : class, new()
         }
     }
 
+    // Passing in the interfaces when we already have the propertyInfo feels a bit redundant...
     private object GetConfigValue(PropertyInfo prop, Type[] interfaces, object source)
     {
-        var bob = interfaces.FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == ValidatableType);
-        if (bob is not null)
+        var validatableType = interfaces.FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == ValidatableType);
+        if (validatableType is not null)
         {
             var value = prop.PropertyType.GetProperty(nameof(IValidateConfig<bool>.Value));
-            var validatable = prop.GetValue(source);
-            if (validatable is not null)
-                return value.GetValue(validatable);
+            var validatableProperty = prop.GetValue(source);
+            if (validatableProperty is not null)
+                return value.GetValue(validatableProperty);
 
             return "BORK!";
         }
@@ -178,7 +179,7 @@ public class ConfigCommand<TConfig> : ISubCommand where TConfig : class, new()
 
     private void OpenInVim()
     {
-        var vim = Process.Start("C:\\Windows\\vim.bat", configStore.Path);
+        var vim = Process.Start("vim.exe", configStore.Path);
         vim.WaitForExit();
     }
 }

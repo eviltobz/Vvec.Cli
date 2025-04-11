@@ -4,6 +4,7 @@
 # Visual Studio folder
 .vs/
 .vscode/
+.cr/
 
 # User-specific files
 *.suo

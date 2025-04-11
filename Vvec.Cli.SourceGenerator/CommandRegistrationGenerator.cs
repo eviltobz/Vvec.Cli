@@ -107,7 +107,10 @@ namespace Vvec.Cli.SourceGenerator
 
                 (CliModifier[] args, string debuggery) = GetModifiers(clss, compilation, symbol);
 
-                classesToRegister.Add(new ClassToRegister(symbolName, args, debuggery));
+                var bases = clss.BaseList?.Types ?? new SeparatedSyntaxList<BaseTypeSyntax>();
+                var isAsync = bases.Any(b => b.ToString() == "ISubCommandAsync");
+
+                classesToRegister.Add(new ClassToRegister(symbolName, args, debuggery, isAsync));
             }
 
             return classesToRegister;

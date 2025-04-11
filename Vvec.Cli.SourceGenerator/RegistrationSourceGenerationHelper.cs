@@ -74,7 +74,7 @@ namespace Vvec.Cli
                     // it'd need to mix in compile-time reflection and source-genny code to build it all
                     // Let's hold off on that for now...
                     var implementation = (" + registration.Name + ")resolver(typeof(" + registration.Name + @"));
-                    implementation.Execute();
+                    " + (registration.IsAsync ? "implementation.Execute().Wait();" : "implementation.Execute();") + @"
                 });
             }");
         }

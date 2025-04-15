@@ -118,7 +118,12 @@ namespace Vvec.Cli
                 sb.Append(@"
                     props.Single(p => p.Name == """ + arg.Name + @""").SetValue(instance, " + arg.Name + "Value);");
             }
-            sb.Append(@"
+            if(registration.IsAsync)
+                sb.Append(@"
+                    instance.Execute().Wait();
+                }");
+            else
+                sb.Append(@"
                     instance.Execute();
                 }");
             sb.Append(@", ");

@@ -7,22 +7,63 @@ using IConsole = Vvec.Cli.UI.IConsole;
 
 namespace Vvec.Cli.Arguments;
 
+
+public class SubCommandRegister(Initialiser initialiser)
+{
+    //private Dictionary<Type, SubCommandRegister> commands = [];
+    private List<Command> commands = [];
+
+    internal IReadOnlyCollection<Command> SubCommands { get => commands; }
+    //internal IReadOnlyDictionary<Type, SubCommandRegister> SubCommands { get => commands; }
+
+    public SubCommandRegister SubCommand<TSubCommand>() where TSubCommand : ISubCommandBase
+    {
+        Initialiser.verbose.WriteLine($"Register SubCommand<{typeof(TSubCommand).Name}>");
+        initialiser.AddDependency<TSubCommand>();
+        var subCommand = initialiser.commandFactory.SetUpSubCommand<TSubCommand>(Initialiser.verbose);
+
+        commands.Add(subCommand);
+
+        initialiser.RegisteredSubCommands.Add(typeof(TSubCommand), subCommand);
+
+        return this;
+    }
+
+    public SubCommandRegister SubCommand<TSubCommand>(Action<SubCommandRegister> subCommandRegistration) where TSubCommand : ISubCommandBase
+    {
+        var subCommands = new SubCommandRegister(initialiser);
+        subCommandRegistration(subCommands);
+
+        Initialiser.verbose.WriteLine($"Register SubCommand<{typeof(TSubCommand).Name}>");
+        initialiser.AddDependency<TSubCommand>();
+        var subCommand = initialiser.commandFactory.SetUpSubCommand<TSubCommand>(Initialiser.verbose);
+        foreach (var nested in subCommands.commands)
+            subCommand.AddCommand(nested);
+
+        commands.Add(subCommand);
+
+        initialiser.RegisteredSubCommands.Add(typeof(TSubCommand), subCommand);
+
+        return this;
+    }
+}
+
 public partial class Initialiser
 {
     private static readonly object ResolvedToNull = new object();
     private static readonly IConsole cons = VConsole.Instance;
-    private static readonly IConsole verbose = cons.Verbose;
+    internal static readonly IConsole verbose = cons.Verbose;
 
     private readonly Dictionary<Type, object?> dependencies = new Dictionary<Type, object?>();
     private readonly Dictionary<Type, Func<object>> dependencyFuncs = new Dictionary<Type, Func<object>>();
-    private readonly Introspection.CommandFactory commandFactory;
+    internal readonly Introspection.CommandFactory commandFactory;
     private readonly System.CommandLine.IConsole? argumentConsole = null;
     private readonly ArgumentParserConsole parserConsole = new ArgumentParserConsole();
-    private readonly Dictionary<Type, Command> RegisteredSubCommands = new Dictionary<Type, Command>();
+    internal readonly Dictionary<Type, Command> RegisteredSubCommands = new Dictionary<Type, Command>();
 
 
     public RootCommand rootCommand = null;
-    private bool IsSingleCommand = false;
+    private bool IsDefaultCommand = false;
     private Type? ConfigCommandType = null;
     private Action? DeferredRegisterConfig = null;
 
@@ -34,7 +75,6 @@ public partial class Initialiser
 
     public Initialiser(string[] args, string description)
     {
-
         this.args = args;
         if (CheckAndRemoveVvecCliOption("--verbose"))
             VConsole.SetVerbose();
@@ -93,19 +133,29 @@ public partial class Initialiser
         return this;
     }
 
-    public Initialiser Register<TSubCommand>() where TSubCommand : ISubCommandBase
+    public Initialiser Register<TSubCommand>(SubCommandRegister registrations) where TSubCommand : ISubCommandBase
     {
         AddDependency<TSubCommand>();
+
         Command command = commandFactory.SetUpSubCommand<TSubCommand>(verbose);
         parserConsole.AddCommand(command.Name);
         rootCommand.Add(command);
         RegisteredSubCommands.Add(typeof(TSubCommand), command);
+
+        verbose.WriteLine($"{typeof(TSubCommand).Name} -- {(registrations is null ? "NoSub Commands" : "Some SubCommands")}");
+        if (registrations is not null)
+            foreach (var subCommand in registrations.SubCommands)
+            {
+                verbose.WriteLine($"{typeof(TSubCommand).Name} -- {subCommand.Name}");
+                command.AddCommand(subCommand);
+            }
+
         return this;
     }
 
-    public Initialiser RegisterSingleCommand<TSubCommand>() where TSubCommand : ISubCommandBase
+    public Initialiser RegisterDefaultCommand<TSubCommand>() where TSubCommand : ISubCommandBase
     {
-        IsSingleCommand = true;
+        IsDefaultCommand = true;
         AddDependency<TSubCommand>();
         rootCommand = commandFactory.SetUpRootCommand<TSubCommand>(verbose);
         parserConsole.AddCommand(rootCommand.Name);
@@ -119,7 +169,7 @@ public partial class Initialiser
         var configStore = new ConfigStore<TConfig>(defaultConfig, cons);
         AddDependency<TConfig>(configStore.Read);
         AddDependency<ConfigStore<TConfig>>(configStore);
-        DeferredRegisterConfig = () => Register<ConfigCommand<TConfig>>();
+        DeferredRegisterConfig = () => Register<ConfigCommand<TConfig>>(null);
     }
 
     // Don't leave this as public, it's just whilst iterating towards extraction...
@@ -181,7 +231,7 @@ public partial class Initialiser
     {
         if (ConfigCommandType is not null)
         {
-            if (IsSingleCommand)
+            if (IsDefaultCommand)
                 parserConsole.NoGroups();
             else
                 Group("Misc");

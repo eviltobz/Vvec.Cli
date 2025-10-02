@@ -10,6 +10,18 @@
 		<ImplicitUsings>true</ImplicitUsings>
 		<LangVersion>Latest</LangVersion>
 		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+
+
+		<!-- 👇 Something needed for debugging source generators
+		  * Open properties for SourceGen project in Solution Explorer
+		  * Go to Debug > Open debug launch profiles UI
+		  * Delete existing profile and add a new Roslyn Component one
+		  * Point it to the project using the SourceGen to debug with
+		  * Set Generator as startup project
+		  * Debuggerise
+		  ( * Maybe tweak launchSettings.json to taste)
+		-->
+		<IsRoslynComponent>true</IsRoslynComponent>
 	</PropertyGroup>
 
 	<!-- The following libraries include the source generator interfaces and types we need -->

@@ -1,4 +1,57 @@
-﻿namespace Vvec.Cli.UI;
+﻿using System.Runtime.CompilerServices;
+using System.Text;
+
+namespace Vvec.Cli.UI;
+
+internal static class StringExtensions
+{
+    public static int DisplayLength(this string? text)
+    {
+        if (text is null)
+            return 0;
+
+        var len = 0;
+        var isAnsiEscape = false;
+        foreach(char chr in text)
+        {
+            if(chr == AnsiCode.Escape1)
+            {
+                isAnsiEscape = true;
+                continue;
+            }
+            if (isAnsiEscape && chr != AnsiCode.Terminator)
+                continue;
+            if (isAnsiEscape && chr == AnsiCode.Terminator)
+            {
+                isAnsiEscape = false;
+                continue;
+            }
+
+            len++;
+        }
+        return len;
+    }
+
+    public static bool ContainsAnsiFormatting(this object[] items)
+    {
+        if (items is null)
+            return false;
+
+        foreach (var item in items)
+        {
+            if (item is not null)
+                foreach (char chr in item.ToString())
+                {
+                    if (chr == AnsiCode.Escape1)
+                    {
+                        return true;
+                    }
+                }
+        }
+        return false;
+    }
+
+}
 
 public partial class VConsole : IConsole, IInternalConsole
 {
@@ -27,58 +80,109 @@ public partial class VConsole : IConsole, IInternalConsole
     private int _currentLineLength;
     private HashSet<AppendableLineImplementation> _appendableLines = new();
 
-    IInternalConsole DoWrite(string? text, Colour? foregroundColour = null, Colour? backgroundColour = null, bool updateCurrentInfo = true)
-    {
-        return (this as IInternalConsole).DoWrite(text, foregroundColour, backgroundColour, updateCurrentInfo);
-    }
+    //IInternalConsole DoWrite(string? text, Colour? foregroundColour = null, Colour? backgroundColour = null, bool updateCurrentInfo = true)
+    //{
+    //    return (this as IInternalConsole).DoWrite(text, foregroundColour, backgroundColour, updateCurrentInfo);
+    //}
 
-    IInternalConsole IInternalConsole.DoWrite(string? text, Colour? foregroundColour = null, Colour? backgroundColour = null, bool updateCurrentInfo = true)
+    //IInternalConsole IInternalConsole.DoWrite(string? text, Colour? foregroundColour = null, Colour? backgroundColour = null, bool updateCurrentInfo = true)
+    //{
+    //    lock (locker)
+    //    {
+    //        ConsoleColor originalForeground = default;
+    //        ConsoleColor originalBackground = default;
+
+    //        if (foregroundColour.HasValue)
+    //        {
+    //            originalForeground = Console.ForegroundColor;
+    //            Console.ForegroundColor = (ConsoleColor)foregroundColour.Value;
+    //        }
+    //        if (backgroundColour.HasValue)
+    //        {
+    //            originalBackground = Console.BackgroundColor;
+    //            Console.BackgroundColor = (ConsoleColor)backgroundColour.Value;
+    //        }
+
+    //        Console.Write(text);
+
+    //        if (foregroundColour.HasValue)
+    //            Console.ForegroundColor = originalForeground;
+    //        if (backgroundColour.HasValue)
+    //            Console.BackgroundColor = originalBackground;
+
+
+    //        if (updateCurrentInfo)
+    //            _currentLineLength += text.DisplayLength();
+    //        return this;
+    //    }
+    //}
+
+    IInternalConsole IInternalConsole.DoWrite(object[]? items, bool updateCurrentInfo = true)
+        => (IInternalConsole)DoWrite2(items, updateCurrentInfo);
+
+    //IInternalConsole IInternalConsole.DoWrite2(object[]? items, bool updateCurrentInfo = true)
+    public IConsole DoWrite2(object[]? items, bool updateCurrentInfo = true)
     {
         lock (locker)
         {
-            ConsoleColor originalForeground = default;
-            ConsoleColor originalBackground = default;
-
-            if (foregroundColour.HasValue)
+            var len = 0;
+            if (items is not null)
             {
-                originalForeground = Console.ForegroundColor;
-                Console.ForegroundColor = (ConsoleColor)foregroundColour.Value;
-            }
-            if (backgroundColour.HasValue)
-            {
-                originalBackground = Console.BackgroundColor;
-                Console.BackgroundColor = (ConsoleColor)backgroundColour.Value;
-            }
+                //foreach (var item in items)
+                //{
+                //    if (item is Coloured coloured)
+                //        DoWrite(coloured.Value, coloured.Foreground, coloured.Background);
+                //    else
+                //        DoWrite(item?.ToString());
+                //}
+                var sb = new StringBuilder();
+                foreach (var item in items)
+                {
+                    if (item is null)
+                        continue;
 
-            Console.Write(text);
-
-            if (foregroundColour.HasValue)
-                Console.ForegroundColor = originalForeground;
-            if (backgroundColour.HasValue)
-                Console.BackgroundColor = originalBackground;
+                    var itemString = item.ToString();
+                    sb.Append(itemString);
+                    if (item is not AnsiCode)
+                        len += itemString.DisplayLength();
+                }
+                sb.Append(Style.Default);
+                Console.Write(sb.ToString());
+            }
 
             if (updateCurrentInfo)
-                _currentLineLength += text is null ? 0 : text.Length;
-            return this;
+                //_currentLineLength += text is null ? 0 : text.Length;
+                _currentLineLength += len;
         }
-    }
-
-    public IConsole Write(params object[]? items)
-    {
-        if (items is not null)
-            foreach (var item in items)
-            {
-                if (item is Coloured coloured)
-                    DoWrite(coloured.Value, coloured.Foreground, coloured.Background);
-                else
-                    DoWrite(item?.ToString());
-            }
         return this;
     }
 
+    private const bool UseNewWrite = true;
+    public IConsole Write(params object[]? items)
+    //=> DoWrite(items);
+    {
+
+        if (UseNewWrite)
+            return DoWrite2(items);
+
+        //if (items is not null)
+        //    foreach (var item in items)
+        //        if (item is Coloured coloured)
+        //            DoWrite(coloured.Value, coloured.Foreground, coloured.Background);
+        //        else
+        //            DoWrite(item?.ToString());
+
+        return this;
+    }
+
+
+
     public IConsole WriteLine(params object[]? items)
     {
-        return Write(items).WriteLine();
+        lock (locker)
+        {
+            return Write(items).WriteLine();
+        }
     }
 
     public IConsole WriteLine()
@@ -147,7 +251,7 @@ public partial class VConsole : IConsole, IInternalConsole
             // And not having a space printed first works ok in debug mode (old console app maybe) but
             // hangs Windows Terminal !!!! :(
             if (retval.Key == ConsoleKey.Escape)
-                DoWrite(" X");
+                DoWrite2([" X"]);
 
             return retval;
         }
@@ -200,10 +304,13 @@ public partial class VConsole : IConsole, IInternalConsole
         return new PromptImplementation(this, items);
     }
 
-    public void Abort(params object[] items)
+    public void AbortApplication(params object[] items)
     {
-        if (items is not null && items.Length == 1 && items[0] is not Coloured)
-            WriteLine(items[0].ToString().InRed());
+        //if (items is not null && items.Length == 1 && items[0] is not Coloured)
+        //    WriteLine(items[0].ToString().InRed());
+        if (items is not null && !items.ContainsAnsiFormatting())
+            WriteLine([FG.Red, .. items]);
+
         else
             WriteLine(items);
         Environment.Exit(1);
@@ -244,11 +351,12 @@ public partial class VConsole : IConsole, IInternalConsole
         }
     }
 
-    private class AppendableLineImplementation : IConsole.IAppendableLine
+    private class AppendableLineImplementation : IConsole.IAppendableLine, IConsole.IStatus
     {
         private static object locker = new object();
         private readonly VConsole console;
         private Spinner spinner;
+        private Ellipsis ellipsis;
 
         public int Offset = 1;
         public int Length = 0;
@@ -265,10 +373,17 @@ public partial class VConsole : IConsole, IInternalConsole
             return this;
         }
 
+        public IConsole.IAppendableLine StartEllipsis()
+        {
+            ellipsis = new Ellipsis(this);
+            return this;
+        }
+
         private class Spinner
         {
             private readonly char[] frames = new[] { '|', '/', '-', '\\' };
-            private readonly Colour[] colours = new[] { Colour.Red, Colour.DarkRed, Colour.Magenta, Colour.DarkMagenta, Colour.DarkBlue, Colour.Blue, Colour.DarkCyan, Colour.Cyan };
+            //private readonly Colour[] OLDcolours = new[] { Colour.Red, Colour.DarkRed, Colour.Magenta, Colour.DarkMagenta, Colour.DarkBlue, Colour.Blue, Colour.DarkCyan, Colour.Cyan };
+            private readonly AnsiCode[] colours = new[] { FG.Red, FG.DarkRed, FG.Magenta, FG.DarkMagenta, FG.DarkBlue, FG.Blue, FG.DarkCyan, FG.Cyan };
             private readonly AppendableLineImplementation appender;
             private bool spinning = true;
 
@@ -276,11 +391,20 @@ public partial class VConsole : IConsole, IInternalConsole
             {
                 this.appender = appender;
                 appender.console.AppendableWrite(appender, frames[0]);
+                //HACKY_SPINNER_LENGTH = 1;
                 DoSpinner();
             }
 
-            public void Stop() => spinning = false;
+            public void Stop()
+            {
+                appender.Length--;
+                //appender.Length -= HACKY_SPINNER_LENGTH;
+                appender.console.AppendableWrite(appender, " ");
+                appender.Length--;
+                spinning = false;
+            }
 
+            //private int HACKY_SPINNER_LENGTH = 0;
             public async Task DoSpinner()
             {
                 var frame = 0;
@@ -293,7 +417,10 @@ public partial class VConsole : IConsole, IInternalConsole
                     {
                         if (!spinning) return;
                         appender.Length--;
-                        appender.console.AppendableWrite(appender, frames[frame].InColour(colours[colour]));
+                        //appender.Length -= HACKY_SPINNER_LENGTH;
+                        //appender.console.AppendableWrite(appender, frames[frame].InColour(OLDcolours[colour]));
+                        appender.console.AppendableWrite(appender, colours[colour], frames[frame]);
+                        //HACKY_SPINNER_LENGTH = colours[colour].ToString().Length + 1;
                     }
                     frame++;
                     if (frame == 4) frame = 0;
@@ -307,19 +434,136 @@ public partial class VConsole : IConsole, IInternalConsole
             }
         }
 
+        private class Ellipsis
+        {
+            private readonly AppendableLineImplementation appender;
+            private bool spinning = true;
+            private readonly int startPos;
+
+            public Ellipsis(AppendableLineImplementation appender)
+            {
+                this.appender = appender;
+                startPos = appender.Length;
+                DoEllipsis();
+            }
+
+            public void Stop()
+            {
+                spinning = false;
+                appender.Length = startPos;
+                appender.console.AppendableWrite(appender, "   ");
+                appender.Length = startPos;
+            }
+
+            public async Task DoEllipsis()
+            {
+                var frame = 0;
+                var state = new char[3];
+
+                while (spinning)
+                {
+                    state[0] = frame < 1 ? ' ' : '.';
+                    state[1] = frame < 2 ? ' ' : '.';
+                    state[2] = frame < 3 ? ' ' : '.';
+
+                    lock (locker)
+                    {
+                        if (!spinning) return;
+                        appender.Length = startPos;
+                        appender.console.AppendableWrite(appender, new string(state));
+                    }
+
+                    frame++;
+                    if (frame == 4) frame = 0;
+
+                    await Task.Delay(200);
+                }
+            }
+        }
+
+
         public IConsole.IAppendableLine Write(params object[] items)
         {
             lock (locker)
             {
-                if (spinner is not null)
-                {
-                    Length--;
-                    spinner.Stop();
-                    spinner = null;
-                }
+                StopSpinner();
+                StopEllipsis();
                 console.AppendableWrite(this, items);
             }
             return this;
+        }
+
+        private void StopSpinner()
+        {
+            if (spinner is not null)
+            {
+                spinner.Stop();
+                spinner = null;
+            }
+        }
+        private void StopEllipsis()
+        {
+            if (ellipsis is not null)
+            {
+                ellipsis.Stop();
+                ellipsis = null;
+            }
+        }
+
+        private int statusPosition = 0;
+        public IConsole.IStatus StartStatus(params object[] items)
+        {
+            lock (locker)
+            {
+                statusPosition = Length;
+                console.AppendableWrite(this, items);
+            }
+            return this;
+        }
+
+        public IConsole.IStatus Update(params object[] items)
+        {
+            lock (locker)
+            {
+                StopSpinner();
+                StopEllipsis();
+                var oldLength = Length;
+                Length = statusPosition;
+                StartStatus(items);
+                var newLength = Length;
+                var blanking = oldLength - Length;
+                if (blanking > 0)
+                    console.AppendableWrite(this, new string(' ', blanking));
+                //for (int i = Length; i < oldLength; i++)
+                //    console.AppendableWrite(this, " ");
+                Length = newLength;
+            }
+            return this;
+        }
+
+        public IConsole.IStatus WithSpinner()
+        {
+            StartSpinner();
+            return this;
+        }
+        public IConsole.IStatus WithEllipsis()
+        {
+            StartEllipsis();
+            return this;
+        }
+
+        public IConsole.IAppendableLine Finish()
+        {
+            StopEllipsis();
+            StopSpinner();
+            return this;
+        }
+
+        public IConsole.IAppendableLine Finish(params object[] items)
+        {
+            StopEllipsis();
+            StopSpinner();
+            return Update(items) as IConsole.IAppendableLine;
         }
     }
 
@@ -327,7 +571,7 @@ public partial class VConsole : IConsole, IInternalConsole
     {
         public IConsole Verbose => throw new NotImplementedException();
 
-        public void Abort(params object[] items)
+        public void AbortApplication(params object[] items)
         {
         }
 

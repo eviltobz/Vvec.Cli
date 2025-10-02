@@ -1,5 +1,8 @@
 ﻿namespace Vvec.Cli.Arguments;
 
+public interface ISubCommandParent : ISubCommandBase
+{ }
+
 public interface ISubCommand : ISubCommandBase
 {
     public void Execute();

@@ -35,6 +35,16 @@ namespace Vvec.Cli
 {
     public class Sg
     {
+
+    internal const char Escape1 = (char)27;
+    internal const char Escape2 = '[';
+    internal const char Terminator = 'm';
+    private static readonly string Escape = new string([Escape1, Escape2]);
+    private static readonly string RED = Escape + ""91m"";
+    private static readonly string DARKRED = Escape + ""31m"";
+    private static readonly string DEFAULT = Escape + ""0m"";
+
+
         public static void RegisterCommands(Dictionary<Type, Command> registeredCommands, Func<Type, object> resolver) // where T:ISubCommand
         {
             //Command command = null;
@@ -61,11 +71,23 @@ namespace Vvec.Cli
             return sb.ToString();
         }
 
+        private static string GetCommand(string name) =>
+            @"var found = registeredCommands.TryGetValue(typeof(" + name + @"), out var command);
+            if(!found)
+            {
+              Console.WriteLine($""{RED}A command called '{DARKRED}" + name + @"{RED}' was found but has not been registered."" + Environment.NewLine +
+                $""(Maybe I should auto register any unregistered commands in alphabetical order when 'execute' is called instead of bailing...){DEFAULT}"");
+              Environment.Exit(1);
+            }";
+
         private static void WriteCommandWithoutArgs(StringBuilder sb, ClassToRegister registration)
         {
+            //sb.AppendLine(@"
+            //{
+            //    var command = registeredCommands[typeof(" + registration.Name + @")];
             sb.AppendLine(@"
             {
-                var command = registeredCommands[typeof(" + registration.Name + @")];
+                " + GetCommand(registration.Name) + @"
                 command.SetHandler(() =>
                 {
                     // It'd be _nice_ to do IoC resolve in SourceGen rather than reflection...
@@ -81,9 +103,12 @@ namespace Vvec.Cli
 
         private static void WriteCommandWithArgs(StringBuilder sb, ClassToRegister registration)
         {
+            //sb.AppendLine(@"
+            //{
+            //    var command = registeredCommands[typeof(" + registration.Name + @")];");
             sb.AppendLine(@"
             {
-                var command = registeredCommands[typeof(" + registration.Name + @")];");
+                " + GetCommand(registration.Name));
 
             foreach (var arg in registration.Arguments)
             {
@@ -160,7 +185,7 @@ namespace Vvec.Cli
             var debuggery = classesToRegister.Where(c => c.debugString is not null);
             if (debuggery.Any())
             {
-                sb.AppendLine("const string debuggery = @\"");
+                sb.AppendLine("const string debuggery2 = @\"");
                 foreach (var thing in debuggery)
                 {
                     sb.AppendLine(thing.Name + ": " + thing.debugString);

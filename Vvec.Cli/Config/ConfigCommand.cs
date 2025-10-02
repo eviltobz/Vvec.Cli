@@ -72,21 +72,25 @@ public class ConfigCommand<TConfig> : ISubCommand where TConfig : class, new()
 
         if (updater.MatchingFieldCount == 0)
         {
-            cons.WriteLine("Field '".InRed(), Key.InYellow(), "' not found".InRed());
+            //cons.WriteLine("Field '".InRed(), Key.InYellow(), "' not found".InRed());
+            cons.WriteLine(FG.Red, "Field '", FG.Yellow, Key, FG.Red, "' not found");
             return;
         }
         if (updater.MatchingFieldCount > 1)
         {
-            cons.WriteLine("Multiple matches for field '".InRed(), Key.InYellow(), "' found".InRed());
+            cons.WriteLine(FG.Red, "Multiple matches for field '", FG.Yellow, Key, FG.Red, "' found");
+            //cons.WriteLine("Multiple matches for field '".InRed(), Key.InYellow(), "' found".InRed());
             foreach (var (candidateName, candidateType) in updater.MatchingFields)
-                cons.WriteLine("  ", candidateName.InYellow(), $" ({candidateType})");
+                cons.WriteLine("  ", FG.Yellow, candidateName, FG.Default, $" ({candidateType})");
+                //cons.WriteLine("  ", candidateName.InYellow(), $" ({candidateType})");
             return;
         }
 
         var (name, type) = updater.MatchingFields.Single();
         if (updater.FailedValidation)
         {
-            cons.WriteLine("Invalid content for field '".InRed(), name.InYellow(), "'. Expected a valid ".InRed(), type.InYellow(), " but got '".InRed(), Value.InYellow(), "'".InRed());
+            //cons.WriteLine("Invalid content for field '".InRed(), name.InYellow(), "'. Expected a valid ".InRed(), type.InYellow(), " but got '".InRed(), Value.InYellow(), "'".InRed());
+            cons.WriteLine(FG.Red, "Invalid content for field '", FG.Yellow, name, FG.Red, "'. Expected a valid ", FG.Yellow, type, FG.Red, " but got '", FG.Yellow, Value, FG.Red, "'");
             return;
         }
 
@@ -141,11 +145,13 @@ public class ConfigCommand<TConfig> : ISubCommand where TConfig : class, new()
                 }
 
                 var maxKeyLen = formatted.Select(x => x.Key.Length).Max();
-                cons.WriteLine("  ", prop.Name.InDarkCyan(), ":");
+                //cons.WriteLine("  ", prop.Name.InDarkCyan(), ":");
+                cons.WriteLine("  ", FG.DarkCyan, prop.Name, FG.Default, ":");
 
-                foreach (var item in formatted)
+                foreach (var item in formatted.OrderBy(kvp => kvp.Key))
                 {
-                    cons.WriteLine("    ", item.Key.PadRight(maxKeyLen).InYellow(), ": ", item.Value.ToString().InGreen());
+                    //cons.WriteLine("    ", item.Key.PadRight(maxKeyLen).InYellow(), ": ", item.Value.ToString().InGreen());
+                    cons.WriteLine("    ", FG.Yellow, item.Key.PadRight(maxKeyLen), FG.Default, ": ", FG.Green, item.Value.ToString());
                 }
             }
             else
@@ -153,9 +159,11 @@ public class ConfigCommand<TConfig> : ISubCommand where TConfig : class, new()
                 itemValue = GetConfigValue(prop, interfaces, config);
 
                 if (prop.Name.ToLower() == targetProperty?.ToLower())
-                    cons.WriteLine(">>", prop.Name.PadRight(maxLen).InDarkYellow(), ": ", itemValue.InDarkGreen());
+                    cons.WriteLine(">>", FG.DarkYellow, prop.Name.PadRight(maxLen), FG.Default, ": ", FG.DarkGreen, itemValue);
+                //cons.WriteLine(">>", prop.Name.PadRight(maxLen).InDarkYellow(), ": ", itemValue.InDarkGreen());
                 else
-                    cons.WriteLine("  ", prop.Name.PadRight(maxLen).InYellow(), ": ", itemValue.InGreen());
+                    cons.WriteLine("  ", FG.Yellow, prop.Name.PadRight(maxLen), FG.Default, ": ", FG.Green, itemValue);
+                    //cons.WriteLine("  ", prop.Name.PadRight(maxLen).InYellow(), ": ", itemValue.InGreen());
             }
         }
     }

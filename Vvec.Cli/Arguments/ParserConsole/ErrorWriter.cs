@@ -16,7 +16,7 @@ public class ErrorWriter : IStandardStreamWriter
             || errors.Contains(value))
             return;
 
-        console.Write(value.InDarkRed());
+        console.Write(FG.DarkRed, value);//.InDarkRed());
         writeCount++;
         errors.Add(value);
     }

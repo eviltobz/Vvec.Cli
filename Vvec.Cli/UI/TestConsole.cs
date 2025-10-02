@@ -89,9 +89,9 @@ public class TestConsole : IInternalConsole
     {
         foreach (var item in items)
         {
-            if (item is Coloured coloured)
-                currentLine.Append(coloured.Value);
-            else
+            //if (item is Coloured coloured)
+            //    currentLine.Append(coloured.Value);
+            //else
                 currentLine.Append(item.ToString());
         }
     }
@@ -104,9 +104,10 @@ public class TestConsole : IInternalConsole
     }
 
     ConsoleKeyInfo IInternalConsole.ReadKey() => throw new NotImplementedException();
-    IInternalConsole IInternalConsole.DoWrite(string? text, Colour? foregroundColour = null, Colour? backgroundColour = null, bool updateCurrentInfo = true) => throw new NotImplementedException();
+    //IInternalConsole IInternalConsole.DoWrite(string? text, Colour? foregroundColour = null, Colour? backgroundColour = null, bool updateCurrentInfo = true) => throw new NotImplementedException();
+    IInternalConsole IInternalConsole.DoWrite(object[]? items, bool updateCurrentInfo = true) => throw new NotImplementedException();
     IConsole IConsole.Verbose => throw new NotImplementedException();
-    void IConsole.Abort(params object[] items) => throw new NotImplementedException();
+    void IConsole.AbortApplication(params object[] items) => throw new NotImplementedException();
     IConsole IConsole.ClearLine() => this;
     IConsole.IAppendableLine IConsole.StartAppendable(params object[] items) => throw new NotImplementedException();
 }

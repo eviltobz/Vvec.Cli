@@ -18,7 +18,7 @@ public class ConfigCheckCommand : ISubCommand
 
     public void Execute()
     {
-        cons.WriteLine("Some config is StringValue:", config.StringValue.InYellow());
+        cons.WriteLine("Some config is StringValue:", FG.Yellow, config.StringValue);
     }
 }
 

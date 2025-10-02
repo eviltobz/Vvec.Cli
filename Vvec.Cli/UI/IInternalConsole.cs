@@ -6,6 +6,7 @@ internal interface IInternalConsole : IConsole
 
     ConsoleKeyInfo ReadKey();
 
-    IInternalConsole DoWrite(string? text, Colour? foregroundColour = null, Colour? backgroundColour = null, bool updateCurrentInfo = true);
+    //IInternalConsole DoWrite(string? text, Colour? foregroundColour = null, Colour? backgroundColour = null, bool updateCurrentInfo = true);
+     IInternalConsole DoWrite(object[]? items, bool updateCurrentInfo = true);
 }
 

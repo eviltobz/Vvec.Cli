@@ -45,7 +45,8 @@ public class ConfigStore<TConfig> where TConfig : new()
         catch(Exception ex) // We could check for any exception here, or just presume that if it throws it's a deserialisation issue...
         {
             FileLoadError = true;
-            cons.WriteLine("Error loading config.".InRed(), ex.Message.InMagenta());
+            cons.WriteLine(FG.Red, "Error loading config.", FG.Magenta, ex.Message);
+            //cons.WriteLine("Error loading config.".InRed(), ex.Message.InMagenta());
             return default(TConfig);
         }
     }

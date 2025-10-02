@@ -2,7 +2,7 @@
   "profiles": {
     "Vvec.Cli.TestApp": {
       "commandName": "Project",
-      "commandLineArgs": "furtle"
+      "commandLineArgs": "furtle -m stuff "
     }
   }
 }

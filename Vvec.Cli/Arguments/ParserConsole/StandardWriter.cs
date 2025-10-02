@@ -63,18 +63,20 @@ public class StandardWriter : IStandardStreamWriter
                     optCount++;
                 }
 
-                console.Write(value.InDarkYellow());
+                console.Write(FG.DarkYellow, value);//.InDarkYellow());
             }
             else
             {
                 if (isOpts && value == "\r")
                 {
                     console
-                        .WriteLine("  --dc       ".InDarkYellow(), "     ", "Use default console for this help page".InRed())
-                        .Write("  --verbose  ".InDarkYellow(), "     ", "Include extra debug output".InCyan());
+                        .WriteLine(FG.DarkYellow, "  --dc       ", "     ", FG.Red, "Use default console for this help page")
+                        .Write(FG.DarkYellow, "  --verbose  ", "     ", FG.Cyan, "Include extra debug output");
+                        //.WriteLine("  --dc       ".InDarkYellow(), "     ", "Use default console for this help page".InRed())
+                        //.Write("  --verbose  ".InDarkYellow(), "     ", "Include extra debug output".InCyan());
                     isOpts = false;
                 }
-                console.Write(value.InGreen());
+                console.Write(FG.Green, value);//.InGreen());
                 if (value == "Options:")
                     isOpts = true;
                 if (value == "Usage:")

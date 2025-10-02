@@ -57,6 +57,8 @@ public class BasicCommand : ISubCommand
                 .AddProject("TestProject", LanguageNames.CSharp)
                 .WithMetadataReferences(GetReferences())
                 .AddDocument("Program.cs", ProgramCs).Project;
+            ;
+
         }
 
         public static Project Project { get; }
@@ -64,9 +66,11 @@ public class BasicCommand : ISubCommand
         private static MetadataReference[] GetReferences()
         {
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            var meh1 = MetadataReference.CreateFromFile(assemblies.Single(a => a.GetName().Name == "netstandard").Location);
             return new MetadataReference[]
             {
                 MetadataReference.CreateFromFile(assemblies.Single(a => a.GetName().Name == "netstandard").Location),
+                MetadataReference.CreateFromFile(Assembly.Load("System").Location),
                 MetadataReference.CreateFromFile(Assembly.Load("System.Runtime").Location),
                 MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(Initialiser).Assembly.Location),

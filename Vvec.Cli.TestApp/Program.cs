@@ -1,4 +1,5 @@
-﻿using Vvec.Cli;
+﻿using System.ComponentModel.Design;
+using Vvec.Cli;
 
 var defaultConfig = new Config()
 {
@@ -18,5 +19,9 @@ return entryPoint
     .Register<FurtleCommand>()
     .Register<NoDescriptionCommand>()
     .Register<VeryLongCommand>()
+    .Register<ParentCommand>(commands => commands
+        .SubCommand<Gen1Command>(nested => nested
+            .SubCommand<Gen2Command>())
+        .SubCommand<OtherCommand>())
     .Execute();
 

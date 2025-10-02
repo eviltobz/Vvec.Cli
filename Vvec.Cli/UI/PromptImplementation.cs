@@ -15,22 +15,22 @@ public partial class VConsole
 
         public IConsole.IPrompt AddLine(params object[] items)
         {
-            lines.Add(items.ToList());
+            lines.Add([..items, Style.Default]);
             return this;
         }
 
         private void AppendPrompt(params object[] items)
         {
-            lines.Last().AddRange(items);
+            lines.Last().AddRange([..items, Style.Default]);
         }
 
         private void AppendPromptMatchingStyle(string message)
         {
-            var finalBitOfPrompt = lines.Last().Last();
+            //var finalBitOfPrompt = lines.Last().Last();
 
-            if (finalBitOfPrompt is Coloured coloured)
-                AppendPrompt(new Coloured(message, coloured.Foreground, coloured.Background));
-            else
+            //if (finalBitOfPrompt is Coloured coloured)
+            //    AppendPrompt(new Coloured(message, coloured.Foreground, coloured.Background));
+            //else
                 AppendPrompt(message);
         }
 
@@ -91,20 +91,27 @@ public partial class VConsole
             return console;
         }
 
-        TEnum IConsole.IPrompt.GetEnumSelection<TEnum>(TEnum? defaultValue, Colour? optionsColour, Colour? defaultValueColour)
+        //TEnum IConsole.IPrompt.GetEnumSelection<TEnum>(TEnum? defaultValue, Colour? optionsColour, Colour? defaultValueColour)
+        TEnum IConsole.IPrompt.GetEnumSelection<TEnum>(
+            TEnum? defaultValue,
+            AnsiCode? optionsColour,
+            AnsiCode? defaultValueColour)
         {
             var highest = Enum.GetValues(typeof(TEnum)).Cast<int>().OrderByDescending(x => x).First();
             if (highest > 9)
             {
                 console.WriteLine()
-                    .WriteLine($"Enum \"{typeof(TEnum).Name}\" goes beyond single digits. Highest value is {highest}. Select method needs extending to work with this!".InDarkRed().OnYellow());
+                    .WriteLine(FG.Red, BG.DarkYellow, $"Enum \"{typeof(TEnum).Name}\" goes beyond single digits. Highest value is {highest}. Select method needs extending to work with this!");//.InDarkRed().OnYellow());
             }
 
             foreach (var option in Enum.GetValues(typeof(TEnum)))
             {
                 var colour = defaultValue.HasValue && option.Equals(defaultValue) ? defaultValueColour : optionsColour;
-                console.DoWrite($"{(option.Equals(defaultValue) ? ">>" : "  ")}", defaultValueColour)
-                    .DoWrite($"({(int)option}) {option}", colour).WriteLine();
+                //console.DoWrite($"{(option.Equals(defaultValue) ? ">>" : "  ")}", defaultValueColour)
+                //    .DoWrite($"({(int)option}) {option}", colour).WriteLine();
+                console.DoWrite([defaultValueColour, $"{(option.Equals(defaultValue) ? ">>" : "  ")}"])
+                    .DoWrite([colour, $"({(int)option}) {option}"]).WriteLine();//, colour).WriteLine();
+
             }
 
             if (defaultValue.HasValue)
@@ -122,11 +129,13 @@ public partial class VConsole
                                                    // and yeah, we don't want triple digits for a selection here!
 
                 TEnum? choice = null;
-                Coloured? displayChoice = null;
+                string? displayChoice = null;
+                //Coloured? displayChoice = null;
                 if (selection.Key == ConsoleKey.Enter && defaultValue.HasValue)
                 {
                     choice = defaultValue.Value;
-                    displayChoice = new(choice, defaultValueColour ?? optionsColour);
+                    //displayChoice = new(choice, defaultValueColour ?? optionsColour);
+                    displayChoice = $"{defaultValueColour ?? optionsColour}{choice}";
                 }
 
                 if (int.TryParse(selection.KeyChar.ToString(), out int value))
@@ -135,7 +144,8 @@ public partial class VConsole
                     if (input.success)
                         choice = input.parsed;
 
-                    displayChoice = new(choice, optionsColour);
+                    //displayChoice = new(choice, optionsColour);
+                    displayChoice = $"{optionsColour}{choice}";
                 }
 
                 if (choice.HasValue)
@@ -160,7 +170,8 @@ public partial class VConsole
         {
             console.ClearLine()
                 .Write(lines.Last().ToArray())
-                .Write("(\"".InRed()).Write(input.ToString()).Write("\" is invalid) :".InRed());
+                //.Write("(\"".InRed()).Write(input.ToString()).Write("\" is invalid) :".InRed());
+                .Write(FG.Red, "(\"", FG.Default, input, FG.Red, "\" is invalid) :");
         }
 
         private void ShowFinalPromptAndInput(object input, int clearLinesOffset = 0)
@@ -171,9 +182,11 @@ public partial class VConsole
                 .WriteLine(input);
         }
 
-        public YesNo GetConfirmation(Colour? optionsColour, bool caseSensitive = false)
+        //public YesNo GetConfirmation(Colour? optionsColour, bool caseSensitive = false)
+        public YesNo GetConfirmation(AnsiCode? optionsColour, bool caseSensitive = false)
         {
-            AppendPrompt(new Coloured($" - [Y]es/[N]o{(caseSensitive ? " (Case-Sensitive)" : "")}: ", optionsColour));
+            //AppendPrompt(new Coloured($" - [Y]es/[N]o{(caseSensitive ? " (Case-Sensitive)" : "")}: ", optionsColour));
+            AppendPrompt($"{optionsColour ?? FG.Default} - [Y]es/[N]o{(caseSensitive ? " (Case-Sensitive)" : "")}: ");
             WritePrompt();
 
             while (true)

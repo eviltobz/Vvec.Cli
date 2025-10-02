@@ -47,34 +47,38 @@ namespace Vvec.Cli.SourceGenerator
 
 ";
 
+
         public static readonly string Source = @"
 using System;
 using Vvec.Cli.Arguments;
 
 namespace Vvec.Cli;
 
-public class SingleCommandEntryPoint<TSubCommand> where TSubCommand : ISubCommandBase
+public class DefaultCommandEntryPoint<TSubCommand> where TSubCommand : ISubCommandBase
 {
     private readonly Initialiser initialiser;
 
-    public SingleCommandEntryPoint(string[] args, string description)
+    public DefaultCommandEntryPoint(string[] args, string description)
     {
         initialiser = new Initialiser(args, description);
-        initialiser.RegisterSingleCommand<TSubCommand>();
+        initialiser.RegisterDefaultCommand<TSubCommand>();
     }
 
-/*
-    public SingleCommandEntryPoint<TSubCommand> WithConfig<TConfig>(TConfig defaultConfig = null) where TConfig : class, new()
+    public DefaultCommandEntryPoint<TSubCommand> RegisterAdditionalCommand<TAdditionalCommand>() where TAdditionalCommand : ISubCommandBase
     {
-        initialiser.WithConfig<TConfig>(defaultConfig);
+        initialiser.Register<TAdditionalCommand>(null);
         return this;
     }
 
-    public int Execute()
+    public DefaultCommandEntryPoint<TSubCommand> RegisterAdditionalCommand<TAdditionalCommand>(Action<SubCommandRegister> subCommandRegistration) where TAdditionalCommand : ISubCommandBase
     {
-        return initialiser.Execute(Vvec.Cli.Sg.RegisterCommands);
+        var subCommands = new SubCommandRegister(initialiser);
+        subCommandRegistration(subCommands);
+        initialiser.Register<TAdditionalCommand>(subCommands);
+        return this;
     }
-*/" + CommonCommands("SingleCommandEntryPoint<TSubCommand>") + @"
+
+" + CommonCommands("DefaultCommandEntryPoint<TSubCommand>") + @"
 }
 
 public class MultiCommandEntryPoint
@@ -94,9 +98,19 @@ public class MultiCommandEntryPoint
 
     public MultiCommandEntryPoint Register<TSubCommand>() where TSubCommand : ISubCommandBase
     {
-        initialiser.Register<TSubCommand>();
+        initialiser.Register<TSubCommand>(null);
         return this;
-    }" + CommonCommands("MultiCommandEntryPoint") + @"
+    }
+
+    public MultiCommandEntryPoint Register<TSubCommand>(Action<SubCommandRegister> subCommandRegistration) where TSubCommand : ISubCommandBase
+    {
+        var subCommands = new SubCommandRegister(initialiser);
+        subCommandRegistration(subCommands);
+        initialiser.Register<TSubCommand>(subCommands);
+        return this;
+    }
+
+    " + CommonCommands("MultiCommandEntryPoint") + @"
 
 }
 ";

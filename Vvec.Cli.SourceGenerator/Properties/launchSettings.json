@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Profile 1": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\Vvec.Cli.TestApp\\Vvec.Cli.TestApp.csproj"
+    }
+  }
+}

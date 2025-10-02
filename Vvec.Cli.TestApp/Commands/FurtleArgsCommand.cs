@@ -30,9 +30,9 @@ public class FurtleArgsCommand : ISubCommand
 
     public void Execute()
     {
-        cons.WriteLine("Executing with args.. StringArg = \"", StringArg.InYellow(),
-            "\", BoolArg = \"", BoolArg.InYellow(),
-            "\", IntArg = \"", ChoiceArg.InYellow(), "\"");
+        cons.WriteLine("Executing with args.. StringArg = \"", FG.Yellow, StringArg, FG.Default,
+            "\", BoolArg = \"", FG.Yellow, BoolArg, FG.Default,
+            "\", IntArg = \"", FG.Yellow, ChoiceArg, FG.Default, "\"");
     }
 }
 

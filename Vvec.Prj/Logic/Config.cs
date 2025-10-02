@@ -18,4 +18,6 @@ public class Config
     public FolderPath? ProjectRoot { get; init; }
 
     public Dictionary<string, FolderPath> Shortcuts { get; init; }
+
+    public Dictionary<string, FolderPath> ProjectRoots { get; init; }
 }

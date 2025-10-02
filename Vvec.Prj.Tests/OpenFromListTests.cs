@@ -40,7 +40,7 @@ public class OpenFromListTests
     public void ListsShortcuts()
     {
         testConsole.SetupLinesToRead("blah");
-        sut.ChoosePath(projectFolders, false);
+        sut.ChoosePath(projectFolders, "my root", false);
 
         testConsole.AssertLineContains("[config1]", @"somepath\config1");
         testConsole.AssertLineContains("[config2]", @"otherpath\config2");
@@ -50,7 +50,7 @@ public class OpenFromListTests
     public void ListsProjectFolders()
     {
         testConsole.SetupLinesToRead("blah");
-        sut.ChoosePath(projectFolders, false);
+        sut.ChoosePath(projectFolders,"my root",  false);
 
         testConsole.AssertLineContains("[0]", @"Path1");
         testConsole.AssertLineContains("[1]", @"Path2");
@@ -77,7 +77,7 @@ public class OpenFromListTests
         };
         testConsole.SetupLinesToRead(number);
 
-        var actual = sut.ChoosePath(projectFolders, false);
+        var actual = sut.ChoosePath(projectFolders,"my root",  false);
 
         Assert.AreEqual(@"projectRoot\path" + number, actual);
         mockOpenDirect.VerifyNoOtherCalls();
@@ -90,12 +90,12 @@ public class OpenFromListTests
     public void NotValidIndexFallsBackToOpenDirect(string input)
     {
         const string openDirectResponse = "Open Direct Response";
-        mockOpenDirect.Setup(x => x.FindPath(input, projectFolders)).Returns(openDirectResponse);
+        mockOpenDirect.Setup(x => x.FindPath(input, projectFolders, false)).Returns(openDirectResponse);
         testConsole.SetupLinesToRead(input);
 
-        var actual = sut.ChoosePath(projectFolders, false);
+        var actual = sut.ChoosePath(projectFolders,  "my root", false);
 
-        mockOpenDirect.Verify(x => x.FindPath(input, projectFolders), Times.Once());
+        mockOpenDirect.Verify(x => x.FindPath(input, projectFolders, false), Times.Once());
         Assert.AreEqual(openDirectResponse, actual);
     }
 
@@ -106,7 +106,7 @@ public class OpenFromListTests
     {
         testConsole.SetupLinesToRead(input);
 
-        var actual = sut.ChoosePath(projectFolders, false);
+        var actual = sut.ChoosePath(projectFolders,"my root",  false);
 
         Assert.IsNull(actual);
         mockOpenDirect.VerifyNoOtherCalls();

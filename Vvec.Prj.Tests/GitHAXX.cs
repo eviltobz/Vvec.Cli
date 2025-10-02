@@ -11,4 +11,5 @@ public class GitHAXX
         var bob = git.CurrentBranch + $", {git.HasUncommittedChanges}";
         Assert.Fail(bob);
     }
+
 }

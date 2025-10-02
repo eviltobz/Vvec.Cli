@@ -37,8 +37,9 @@ public class OpenDirectTests
             };
 
         testConsole = VConsole.CreateTestConsole(Assert.Fail);
+        var matcher = new PartialMatcher(testConsole);
 
-        sut = new OpenDirect(testConsole, config);
+        sut = new OpenDirect(testConsole, config, matcher);
     }
 
     // From config
@@ -58,7 +59,7 @@ public class OpenDirectTests
     [TestCase("not a match", null)]
     public void ReturnsForFullMatchCaseInsensitivePrioritisingShortcuts(string shortcut, string? expected)
     {
-        var actual = sut.FindPath(shortcut, projectFolders);
+        var actual = sut.FindPath(shortcut, projectFolders, false);
 
         Assert.AreEqual(expected, actual);
     }
@@ -79,7 +80,7 @@ public class OpenDirectTests
     [TestCase(@"projectRoot\some", null)]
     public void ReturnsForDistinctPartialMatchCaseInsensitivePrioritisingShortcuts(string shortcut, string? expected)
     {
-        var actual = sut.FindPath(shortcut, projectFolders);
+        var actual = sut.FindPath(shortcut, projectFolders, false);
 
         Assert.AreEqual(expected, actual);
     }
@@ -90,7 +91,7 @@ public class OpenDirectTests
     [TestCase("folder", "path", "Folder1", "Folder2")]
     public void WritesErrorForNonDistictPartialMatchCaseInsensitive(string partial, string type, string match1, string match2)
     {
-        var actual = sut.FindPath(partial, projectFolders);
+        var actual = sut.FindPath(partial, projectFolders, false);
 
         Assert.IsNull(actual);
         testConsole.AssertLineContains(type, partial);
@@ -102,7 +103,7 @@ public class OpenDirectTests
     [TestCase("banana")]
     public void WritesErrorForNoMatch(string name)
     {
-        var actual = sut.FindPath(name, projectFolders);
+        var actual = sut.FindPath(name, projectFolders, false);
 
         Assert.IsNull(actual);
         testConsole.AssertLineContains("no match", name);

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "WiredBrainCoffee.Generators": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\WiredBrainCoffee.ConsoleApp\\WiredBrainCoffee.ConsoleApp.csproj"
+    }
+  }
+}
